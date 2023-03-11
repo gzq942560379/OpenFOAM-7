@@ -1,0 +1,50 @@
+#------------------------------------------------------------------------------
+# Fujitsu compiler - a clang variant
+
+SUFFIXES += .C .cc .cpp .cxx
+
+c++DBUG     =
+c++OPT      = -O2
+ptFLAGS     = -DNoRepository -ftemplate-depth-100
+
+# - Standard warnings
+# - Less restrictive warnings (may be needed for flex++, CGAL, etc.)
+
+c++WARN     = \
+    -Wall -Wextra -Wold-style-cast \
+    -Wnon-virtual-dtor -Wno-unused-parameter -Wno-invalid-offsetof \
+    -Wno-undefined-var-template \
+    -Wno-unknown-warning-option \
+    $(FOAM_EXTRA_CXXFLAGS)
+
+c++LESSWARN = \
+    -Wno-old-style-cast -Wno-unused-local-typedefs \
+    -Wno-tautological-undefined-compare -Wno-shift-negative-value \
+    -Wno-null-pointer-arithmetic
+
+ifeq ($(WM_CXX),mpiFCCpx)
+CC          = mpiFCCpx -Nclang
+else
+CC          = mpiFCC -Nclang
+endif
+
+c++ARCH     = -m64 -march=armv8.2-a+sve -mcpu=a64fx
+
+include $(DEFAULT_RULES)/c++$(WM_COMPILE_OPTION)
+
+c++FLAGS    = $(c++ARCH) $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -fPIC
+
+Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
+cxxtoo      = $(Ctoo)
+cctoo       = $(Ctoo)
+cpptoo      = $(Ctoo)
+
+LINK_LIBS   = $(c++DBUG)
+
+LINKLIBSO   = $(CC) $(c++FLAGS) -shared $(FOAM_EXTRA_LDFLAGS)
+
+ifeq ($(WM_CXX),mpiFCCpx)
+LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed -Wl,-rpath-link=$(LD_LIBRARY_PATH)
+else
+LINKEXE     = $(CC) $(c++FLAGS) -Xlinker --add-needed
+endif

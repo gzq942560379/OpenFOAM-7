@@ -34,5 +34,6 @@ EXE_LIBS = \
     -ldynamicMesh \
     -ldecompositionMethods \
     -L$(FOAM_LIBBIN)/dummy -lscotchDecomp -lptscotchDecomp \
+    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit \
     -lsampling \
     -lfileFormats

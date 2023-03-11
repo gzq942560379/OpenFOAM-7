@@ -12,5 +12,7 @@ EXE_LIBS = \
     -ldecompose \
     -lgenericPatchFields \
     -ldecompositionMethods -L$(FOAM_LIBBIN)/dummy -lmetisDecomp -lscotchDecomp \
-    -llagrangian \
+    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit \
+    -L$(METIS_ARCH_PATH)/lib -lmetis \
+    -llagrangian \    
     -lregionModels

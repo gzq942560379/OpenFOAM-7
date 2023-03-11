@@ -21,6 +21,7 @@ EXE_LIBS = \
     -lGL \
     -lconformalVoronoiMesh \
     -ldecompositionMethods -L$(FOAM_LIBBIN)/dummy -lscotchDecomp \
+    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit \
     -lfileFormats \
     -ltriSurface \
     -lmeshTools \

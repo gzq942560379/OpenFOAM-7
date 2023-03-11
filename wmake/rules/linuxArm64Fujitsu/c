@@ -1,0 +1,32 @@
+#------------------------------------------------------------------------------
+# Fujitsu compiler - a clang variant
+SUFFIXES += .c
+
+cDBUG       =
+cOPT        = -O2
+cWARN       = -Wall $(FOAM_EXTRA_CFLAGS)
+
+ifeq ($(WM_CC),mpifccpx)
+cc          = mpifccpx -Nclang
+else
+cc          = mpifcc -Nclang
+endif
+
+cARCH       = -m64 -march=armv8.2-a+sve -mcpu=a64fx
+
+# Compile option is non-mandatory, but must be non-empty
+sinclude $(DEFAULT_RULES)/c$(WM_COMPILE_OPTION)
+
+cFLAGS      = $(cARCH) $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -fPIC
+
+ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
+
+INK_LIBS   = $(cDBUG)
+
+LINKLIBSO   = $(cc) $(cARCH) -shared
+
+ifeq ($(WM_CC),mpifccpx)
+LINKEXE     = $(cc) $(cARCH) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs -Wl,-rpath-link=$(LD_LIBRARY_PATH)
+else
+LINKEXE     = $(cc) $(cARCH) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
+endif

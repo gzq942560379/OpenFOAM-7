@@ -13,6 +13,7 @@ EXE_LIBS = \
     -lfiniteVolume \
     -ldecompositionMethods \
     -L$(FOAM_LIBBIN)/dummy -lscotchDecomp -lptscotchDecomp \
+    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit \
     -lmeshTools \
     -lsurfMesh \
     -lfileFormats \

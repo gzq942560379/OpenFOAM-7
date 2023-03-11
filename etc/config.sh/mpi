@@ -254,6 +254,14 @@ INTELMPI)
     _foamAddPath    $MPI_ARCH_PATH/bin64
     _foamAddLib     $MPI_ARCH_PATH/lib64
     ;;
+FUJITSU-MPI)
+    export MPI_ROOT=/opt/FJSVxtclanga/tcsds-latest
+    export MPI_ARCH_PATH=$MPI_ROOT
+    export FOAM_MPI=mpifcc
+    export MPI_ARCH_FLAGS=
+    export MPI_ARCH_INC="-isystem $MPI_ROOT/include/mpi/fujitsu/"
+    export MPI_ARCH_LIBS="-L$MPI_ROOT/lib64 -lmpi"
+    ;;
 *)
     export FOAM_MPI=dummy
     ;;

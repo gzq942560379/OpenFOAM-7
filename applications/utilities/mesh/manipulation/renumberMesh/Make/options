@@ -16,4 +16,6 @@ EXE_LIBS = \
     -lrenumberMethods \
     $(LINK_FLAGS) \
     -ldecompositionMethods \
-    -L$(FOAM_LIBBIN)/dummy -lmetisDecomp -lscotchDecomp
+    -L$(FOAM_LIBBIN)/dummy -lmetisDecomp -lscotchDecomp \
+    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit \
+    -L$(METIS_ARCH_PATH)/lib -lmetis

@@ -23,6 +23,7 @@ EXE_LIBS = \
     $(CGAL_LIBS) \
     -lconformalVoronoiMesh \
     -ldecompositionMethods /* -L$(FOAM_LIBBIN)/dummy -lscotchDecomp */ \
+    -L$(SCOTCH_ARCH_PATH)/lib -lscotch -lscotcherrexit \
     -ltriSurface \
     -lsurfMesh \
     -lmeshTools \
