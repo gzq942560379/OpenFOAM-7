@@ -690,6 +690,10 @@ void Foam::UPstream::freePstreamCommunicator(const label communicator)
     }
 }
 
+MPI_Comm Foam::UPstream::getPstreamCommunicator(const label communicator)
+{
+    return PstreamGlobals::MPICommunicators_[communicator];
+}
 
 Foam::label Foam::UPstream::nRequests()
 {

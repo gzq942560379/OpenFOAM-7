@@ -133,12 +133,15 @@ void Foam::UPstream::allocatePstreamCommunicator
 void Foam::UPstream::freePstreamCommunicator(const label)
 {}
 
+MPI_Comm Foam::UPstream::getPstreamCommunicator(const label communicator)
+{
+    return MPI_COMM_NULL;
+}
 
 Foam::label Foam::UPstream::nRequests()
 {
     return 0;
 }
-
 
 void Foam::UPstream::resetRequests(const label i)
 {}
