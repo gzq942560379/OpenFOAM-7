@@ -167,6 +167,166 @@ public:
             //- Set number of processor directories/results. Only used in
             //  decomposePar
             virtual void setNProcs(const label nProcs);
+
+            template<class Type, class fileOp>
+            Type masterOp
+            (
+                const fileName&,
+                const fileOp& fop,
+                const int tag,
+                const label comm
+            ) const;
+
+            template<class Type, class fileOp>
+            Type masterOp
+            (
+                const fileName&,
+                const fileName&,
+                const fileOp& fop,
+                const int tag,
+                const label comm
+            ) const;
+
+       // OSSpecific equivalents
+
+            //- Make directory
+            virtual bool mkDir(const fileName&, mode_t=0777) const;
+
+            //- Set the file mode
+            virtual bool chMod(const fileName&, const mode_t) const;
+
+            //- Return the file mode
+            virtual mode_t mode
+            (
+                const fileName&,
+                const bool checkVariants = true,
+                const bool followLink = true
+            ) const;
+
+            //- Return the file type: directory, file or link
+            virtual fileType type
+            (
+                const fileName&,
+                const bool checkVariants = true,
+                const bool followLink = true
+            ) const;
+
+            //- Does the name exist (as directory or file) in the file system?
+            //  Optionally enable/disable check for gzip file.
+            virtual bool exists
+            (
+                const fileName&,
+                const bool checkVariants = true,
+                const bool followLink = true
+            ) const;
+
+            //- Does the name exist as a directory in the file system?
+            virtual bool isDir
+            (
+                const fileName&,
+                const bool followLink = true
+            ) const;
+
+            //- Does the name exist as a file in the file system?
+            //  Optionally enable/disable check for gzip file.
+            virtual bool isFile
+            (
+                const fileName&,
+                const bool checkVariants = true,
+                const bool followLink = true
+            ) const;
+
+            //- Return size of file
+            virtual off_t fileSize
+            (
+                const fileName&,
+                const bool checkVariants = true,
+                const bool followLink = true
+            ) const;
+
+            //- Return time of last file modification
+            virtual time_t lastModified
+            (
+                const fileName&,
+                const bool checkVariants = true,
+                const bool followLink = true
+            ) const;
+
+            //- Return time of last file modification
+            virtual double highResLastModified
+            (
+                const fileName&,
+                const bool checkVariants = true,
+                const bool followLink = true
+            ) const;
+
+            //- Read a directory and return the entries as a string list
+            virtual fileNameList readDir
+            (
+                const fileName&,
+                const fileType = fileType::file,
+                const bool filterVariants = true,
+                const bool followLink = true
+            ) const;
+
+            //- Copy, recursively if necessary, the source to the destination
+            virtual bool cp
+            (
+                const fileName& src,
+                const fileName& dst,
+                const bool followLink = true
+            ) const;
+
+            //- Create a softlink. dst should not exist. Returns true if
+            //  successful.
+            virtual bool ln(const fileName& src, const fileName& dst) const;
+
+            //- Rename src to dst
+            virtual bool mv
+            (
+                const fileName& src,
+                const fileName& dst,
+                const bool followLink = false
+            ) const;
+
+            //- Rename to a corresponding backup file
+            //  If the backup file already exists, attempt with
+            //  "01" .. "99" suffix
+            virtual bool mvBak
+            (
+                const fileName&,
+                const std::string& ext = "bak"
+            ) const;
+
+            //- Remove a file, returning true if successful otherwise false
+            virtual bool rm(const fileName&) const;
+
+            //- Remove a directory and its contents
+            virtual bool rmDir(const fileName&) const;
+
+            //- Search for an object. checkGlobal : also check undecomposed case
+            virtual fileName filePath
+            (
+                const bool checkGlobal,
+                const IOobject&,
+                const word& typeName
+            ) const;
+
+            //- Search for a directory. checkGlobal : also check undecomposed
+            //  case
+            virtual fileName dirPath
+            (
+                const bool checkGlobal,
+                const IOobject&
+            ) const;
+
+            //- Read object header from supplied file
+            virtual bool readHeader
+            (
+                IOobject&,
+                const fileName&,
+                const word& typeName
+            ) const;
 };
 
 
@@ -210,6 +370,12 @@ public:
 
 } // End namespace fileOperations
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "collatedFileOperationTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

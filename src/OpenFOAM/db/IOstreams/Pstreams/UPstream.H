@@ -46,7 +46,7 @@ SourceFiles
 #include "NamedEnum.H"
 #include "ListOps.H"
 #include "LIFOStack.H"
-
+#include <mpi.h>
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -84,12 +84,12 @@ public:
                 //- procIDs of processors directly below me
                 labelList below_;
 
-                //- procIDs of all processors below (so not just directly below)
-                labelList allBelow_;
+                // //- procIDs of all processors below (so not just directly below)
+                // labelList allBelow_;
 
-                //- procIDs of all processors not below. (inverse set of
-                //  allBelow_ and minus myProcNo)
-                labelList allNotBelow_;
+                // //- procIDs of all processors not below. (inverse set of
+                // //  allBelow_ and minus myProcNo)
+                // labelList allNotBelow_;
 
 
         public:
@@ -103,20 +103,20 @@ public:
                 commsStruct
                 (
                     const label,
-                    const labelList&,
-                    const labelList&,
                     const labelList&
+                    // const labelList&,
+                    // const labelList&
                 );
 
-                //- Construct from components; construct allNotBelow_
-                commsStruct
-                (
-                    const label nProcs,
-                    const label myProcID,
-                    const label,
-                    const labelList&,
-                    const labelList&
-                );
+                // //- Construct from components; construct allNotBelow_
+                // commsStruct
+                // (
+                //     const label nProcs,
+                //     const label myProcID,
+                //     const label,
+                //     const labelList&,
+                //     const labelList&
+                // );
 
 
             // Member Functions
@@ -133,15 +133,15 @@ public:
                         return below_;
                     }
 
-                    const labelList& allBelow() const
-                    {
-                        return allBelow_;
-                    }
+                    // const labelList& allBelow() const
+                    // {
+                    //     return allBelow_;
+                    // }
 
-                    const labelList& allNotBelow() const
-                    {
-                        return allNotBelow_;
-                    }
+                    // const labelList& allNotBelow() const
+                    // {
+                    //     return allNotBelow_;
+                    // }
 
 
             // Member Operators
@@ -243,6 +243,8 @@ private:
         (
             const label index
         );
+
+
 
 
 protected:
@@ -352,6 +354,12 @@ public:
         //- Return processor number in communicator (given physical processor
         //  number) (= reverse of baseProcNo)
         static label procNo(const label comm, const int baseProcID);
+
+        //- Free a communicator
+        static MPI_Comm getPstreamCommunicator
+        (
+            const label index
+        );
 
         //- Return processor number in communicator (given processor number
         //  and communicator)

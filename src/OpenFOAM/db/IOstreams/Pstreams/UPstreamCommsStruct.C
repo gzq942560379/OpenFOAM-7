@@ -31,61 +31,61 @@ License
 Foam::UPstream::commsStruct::commsStruct()
 :
     above_(-1),
-    below_(0),
-    allBelow_(0),
-    allNotBelow_(0)
+    below_(0)
+    // allBelow_(0),
+    // allNotBelow_(0)
 {}
 
 
 Foam::UPstream::commsStruct::commsStruct
 (
     const label above,
-    const labelList& below,
-    const labelList& allBelow,
-    const labelList& allNotBelow
+    const labelList& below
+    // const labelList& allBelow,
+    // const labelList& allNotBelow
 )
 :
     above_(above),
-    below_(below),
-    allBelow_(allBelow),
-    allNotBelow_(allNotBelow)
+    below_(below)
+    // allBelow_(allBelow),
+    // allNotBelow_(allNotBelow)
 {}
 
 
-Foam::UPstream::commsStruct::commsStruct
-(
-    const label nProcs,
-    const label myProcID,
-    const label above,
-    const labelList& below,
-    const labelList& allBelow
-)
-:
-    above_(above),
-    below_(below),
-    allBelow_(allBelow),
-    allNotBelow_(nProcs - allBelow.size() - 1)
-{
-    boolList inBelow(nProcs, false);
+// Foam::UPstream::commsStruct::commsStruct
+// (
+//     const label nProcs,
+//     const label myProcID,
+//     const label above,
+//     const labelList& below,
+//     const labelList& allBelow
+// )
+// :
+//     above_(above),
+//     below_(below),
+//     allBelow_(allBelow),
+//     allNotBelow_(nProcs - allBelow.size() - 1)
+// {
+//     boolList inBelow(nProcs, false);
 
-    forAll(allBelow, belowI)
-    {
-        inBelow[allBelow[belowI]] = true;
-    }
+//     forAll(allBelow, belowI)
+//     {
+//         inBelow[allBelow[belowI]] = true;
+//     }
 
-    label notI = 0;
-    forAll(inBelow, proci)
-    {
-        if ((proci != myProcID) && !inBelow[proci])
-        {
-            allNotBelow_[notI++] = proci;
-        }
-    }
-    if (notI != allNotBelow_.size())
-    {
-        FatalErrorInFunction << "problem!" << Foam::abort(FatalError);
-    }
-}
+//     label notI = 0;
+//     forAll(inBelow, proci)
+//     {
+//         if ((proci != myProcID) && !inBelow[proci])
+//         {
+//             allNotBelow_[notI++] = proci;
+//         }
+//     }
+//     if (notI != allNotBelow_.size())
+//     {
+//         FatalErrorInFunction << "problem!" << Foam::abort(FatalError);
+//     }
+// }
 
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
@@ -96,8 +96,8 @@ bool Foam::UPstream::commsStruct::operator==(const commsStruct& comm) const
     (
         (above_ == comm.above())
      && (below_ == comm.below())
-     && (allBelow_ == allBelow())
-     && (allNotBelow_ == allNotBelow())
+    //  && (allBelow_ == allBelow())
+    //  && (allNotBelow_ == allNotBelow())
     );
 }
 
@@ -113,9 +113,9 @@ bool Foam::UPstream::commsStruct::operator!=(const commsStruct& comm) const
 Foam::Ostream& Foam::operator<<(Ostream& os, const UPstream::commsStruct& comm)
 {
     os  << comm.above_ << token::SPACE
-        << comm.below_ << token::SPACE
-        << comm.allBelow_ << token::SPACE
-        << comm.allNotBelow_;
+        << comm.below_ << token::SPACE;
+        // << comm.allBelow_ << token::SPACE
+        // << comm.allNotBelow_;
 
     os.check
     (

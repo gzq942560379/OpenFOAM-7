@@ -272,6 +272,22 @@ public:
                 const label comm
             );
 
+            template<class T>
+            static void gatherListLinear
+            (
+                List<T>& Values,
+                const int tag,
+                const label comm
+            );
+
+            template<class T>
+            static void gatherListTree
+            (
+                List<T>& Values,
+                const int tag,
+                const label comm
+            );
+
             //- Like above but switches between linear/tree communication
             template<class T>
             static void gatherList
@@ -286,6 +302,22 @@ public:
             static void scatterList
             (
                 const List<commsStruct>& comms,
+                List<T>& Values,
+                const int tag,
+                const label comm
+            );
+
+            template<class T>
+            static void scatterListLinear
+            (
+                List<T>& Values,
+                const int tag,
+                const label comm
+            );
+
+            template<class T>
+            static void scatterListTree
+            (
                 List<T>& Values,
                 const int tag,
                 const label comm

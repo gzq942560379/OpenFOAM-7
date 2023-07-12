@@ -112,24 +112,34 @@ Foam::List<Foam::UPstream::commsStruct> Foam::UPstream::calcLinearComm
         belowIDs[i] = i + 1;
     }
 
+    // linearCommunication[0] = commsStruct
+    // (
+    //     nProcs,
+    //     0,
+    //     -1,
+    //     belowIDs,
+    //     labelList(0)
+    // );
     linearCommunication[0] = commsStruct
     (
-        nProcs,
-        0,
         -1,
-        belowIDs,
-        labelList(0)
+        belowIDs
     );
 
     // Slaves. Have no below processors, only communicate up to master
     for (label procID = 1; procID < nProcs; procID++)
     {
+        // linearCommunication[procID] = commsStruct
+        // (
+        //     nProcs,
+        //     procID,
+        //     0,
+        //     labelList(0),
+        //     labelList(0)
+        // );
         linearCommunication[procID] = commsStruct
         (
-            nProcs,
-            procID,
             0,
-            labelList(0),
             labelList(0)
         );
     }
@@ -225,24 +235,29 @@ Foam::List<Foam::UPstream::commsStruct> Foam::UPstream::calcTreeComm
 
     // For all processors find the processors it receives data from
     // (and the processors they receive data from etc.)
-    List<DynamicList<label>> allReceives(nProcs);
-    for (label procID = 0; procID < nProcs; procID++)
-    {
-        collectReceives(procID, receives, allReceives[procID]);
-    }
+    // List<DynamicList<label>> allReceives(nProcs);
+    // for (label procID = 0; procID < nProcs; procID++)
+    // {
+    //     collectReceives(procID, receives, allReceives[procID]);
+    // }
 
 
     List<commsStruct> treeCommunication(nProcs);
 
     for (label procID = 0; procID < nProcs; procID++)
     {
+        // treeCommunication[procID] = commsStruct
+        // (
+        //     nProcs,
+        //     procID,
+        //     sends[procID],
+        //     receives[procID].shrink(),
+        //     allReceives[procID].shrink()
+        // );
         treeCommunication[procID] = commsStruct
         (
-            nProcs,
-            procID,
             sends[procID],
-            receives[procID].shrink(),
-            allReceives[procID].shrink()
+            receives[procID].shrink()
         );
     }
     return treeCommunication;

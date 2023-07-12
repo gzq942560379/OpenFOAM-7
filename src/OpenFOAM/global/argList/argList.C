@@ -66,12 +66,12 @@ Foam::argList::initValidTables::initValidTables()
     );
     validParOptions.set("roots", "(dir1 .. dirN)");
 
-    argList::addOption
-    (
-        "hostRoots", "(((host1 dir1) .. (hostN dirN))",
-        "slave root directories (per host) for distributed running"
-    );
-    validParOptions.set("hostRoots", "((host1 dir1) .. (hostN dirN))");
+    // argList::addOption
+    // (
+    //     "hostRoots", "(((host1 dir1) .. (hostN dirN))",
+    //     "slave root directories (per host) for distributed running"
+    // );
+    // validParOptions.set("hostRoots", "((host1 dir1) .. (hostN dirN))");
 
     argList::addBoolOption
     (
@@ -101,7 +101,7 @@ void Foam::argList::initValidTables::clear()
     argList::removeOption("case");
     argList::removeOption("parallel");
     argList::removeOption("roots");
-    argList::removeOption("hostRoots");
+    // argList::removeOption("hostRoots");
     argList::removeOption("noFunctionObjects");
     argList::removeOption("fileHandler");
     argList::removeOption("libs");
@@ -175,7 +175,7 @@ void Foam::argList::noParallel()
 {
     removeOption("parallel");
     removeOption("roots");
-    removeOption("hostRoots");
+    // removeOption("hostRoots");
     validParOptions.clear();
 }
 
@@ -705,55 +705,55 @@ void Foam::argList::parse
     }
 
 
-    stringList slaveMachine;
-    stringList slaveProcs;
+    // stringList slaveMachine;
+    // stringList slaveProcs;
 
-    // Collect slave machine/pid
-    if (parRunControl_.parRun())
-    {
-        if (Pstream::master())
-        {
-            slaveMachine.setSize(Pstream::nProcs() - 1);
-            slaveProcs.setSize(Pstream::nProcs() - 1);
-            label proci = 0;
-            for
-            (
-                int slave = Pstream::firstSlave();
-                slave <= Pstream::lastSlave();
-                slave++
-            )
-            {
-                IPstream fromSlave(Pstream::commsTypes::scheduled, slave);
+    // // Collect slave machine/pid
+    // if (parRunControl_.parRun())
+    // {
+    //     if (Pstream::master())
+    //     {
+    //         slaveMachine.setSize(Pstream::nProcs() - 1);
+    //         slaveProcs.setSize(Pstream::nProcs() - 1);
+    //         label proci = 0;
+    //         for
+    //         (
+    //             int slave = Pstream::firstSlave();
+    //             slave <= Pstream::lastSlave();
+    //             slave++
+    //         )
+    //         {
+    //             IPstream fromSlave(Pstream::commsTypes::scheduled, slave);
 
-                string slaveBuild;
-                label slavePid;
-                fromSlave >> slaveBuild >> slaveMachine[proci] >> slavePid;
+    //             string slaveBuild;
+    //             label slavePid;
+    //             fromSlave >> slaveBuild >> slaveMachine[proci] >> slavePid;
 
-                slaveProcs[proci] = slaveMachine[proci]+"."+name(slavePid);
-                proci++;
+    //             slaveProcs[proci] = slaveMachine[proci]+"."+name(slavePid);
+    //             proci++;
 
-                // Check build string to make sure all processors are running
-                // the same build
-                if (slaveBuild != Foam::FOAMbuild)
-                {
-                    FatalErrorIn(executable())
-                        << "Master is running version " << Foam::FOAMbuild
-                        << "; slave " << proci << " is running version "
-                        << slaveBuild
-                        << exit(FatalError);
-                }
-            }
-        }
-        else
-        {
-            OPstream toMaster
-            (
-                Pstream::commsTypes::scheduled,
-                Pstream::masterNo()
-            );
-            toMaster << string(Foam::FOAMbuild) << hostName() << pid();
-        }
-    }
+    //             // Check build string to make sure all processors are running
+    //             // the same build
+    //             if (slaveBuild != Foam::FOAMbuild)
+    //             {
+    //                 FatalErrorIn(executable())
+    //                     << "Master is running version " << Foam::FOAMbuild
+    //                     << "; slave " << proci << " is running version "
+    //                     << slaveBuild
+    //                     << exit(FatalError);
+    //             }
+    //         }
+    //     }
+    //     else
+    //     {
+    //         OPstream toMaster
+    //         (
+    //             Pstream::commsTypes::scheduled,
+    //             Pstream::masterNo()
+    //         );
+    //         toMaster << string(Foam::FOAMbuild) << hostName() << pid();
+    //     }
+    // }
 
 
     // Case is a single processor run unless it is running parallel
@@ -786,52 +786,52 @@ void Foam::argList::parse
                     dictNProcs = roots.size()+1;
                 }
             }
-            else if (options_.found("hostRoots"))
-            {
-                source = "-hostRoots";
-                IStringStream is(options_["hostRoots"]);
-                List<Tuple2<wordRe, fileName>> hostRoots(is);
+            // else if (options_.found("hostRoots"))
+            // {
+            //     source = "-hostRoots";
+            //     IStringStream is(options_["hostRoots"]);
+            //     List<Tuple2<wordRe, fileName>> hostRoots(is);
 
-                roots.setSize(Pstream::nProcs()-1);
-                forAll(hostRoots, i)
-                {
-                    const Tuple2<wordRe, fileName>& hostRoot = hostRoots[i];
-                    const wordRe& re = hostRoot.first();
-                    labelList matchedRoots(findStrings(re, slaveMachine));
-                    forAll(matchedRoots, matchi)
-                    {
-                        label slavei = matchedRoots[matchi];
-                        if (roots[slavei] != wordRe())
-                        {
-                            FatalErrorInFunction
-                                << "Slave " << slaveMachine[slavei]
-                                << " has multiple matching roots in "
-                                << hostRoots << exit(FatalError);
-                        }
-                        else
-                        {
-                            roots[slavei] = hostRoot.second();
-                        }
-                    }
-                }
+            //     roots.setSize(Pstream::nProcs()-1);
+            //     forAll(hostRoots, i)
+            //     {
+            //         const Tuple2<wordRe, fileName>& hostRoot = hostRoots[i];
+            //         const wordRe& re = hostRoot.first();
+            //         labelList matchedRoots(findStrings(re, slaveMachine));
+            //         forAll(matchedRoots, matchi)
+            //         {
+            //             label slavei = matchedRoots[matchi];
+            //             if (roots[slavei] != wordRe())
+            //             {
+            //                 FatalErrorInFunction
+            //                     << "Slave " << slaveMachine[slavei]
+            //                     << " has multiple matching roots in "
+            //                     << hostRoots << exit(FatalError);
+            //             }
+            //             else
+            //             {
+            //                 roots[slavei] = hostRoot.second();
+            //             }
+            //         }
+            //     }
 
-                // Check
-                forAll(roots, slavei)
-                {
-                    if (roots[slavei] == wordRe())
-                    {
-                        FatalErrorInFunction
-                            << "Slave " << slaveMachine[slavei]
-                            << " has no matching roots in "
-                            << hostRoots << exit(FatalError);
-                    }
-                }
+            //     // Check
+            //     forAll(roots, slavei)
+            //     {
+            //         if (roots[slavei] == wordRe())
+            //         {
+            //             FatalErrorInFunction
+            //                 << "Slave " << slaveMachine[slavei]
+            //                 << " has no matching roots in "
+            //                 << hostRoots << exit(FatalError);
+            //         }
+            //     }
 
-                if (roots.size() != 1)
-                {
-                    dictNProcs = roots.size()+1;
-                }
-            }
+            //     if (roots.size() != 1)
+            //     {
+            //         dictNProcs = roots.size()+1;
+            //     }
+            // }
             else
             {
                 source = rootPath_/globalCase_/"system/decomposeParDict";
@@ -1005,7 +1005,7 @@ void Foam::argList::parse
 
         if (parRunControl_.parRun())
         {
-            Info<< "Slaves : " << slaveProcs << nl;
+            // Info<< "Slaves : " << slaveProcs << nl;
             if (roots.size())
             {
                 Info<< "Roots  : " << roots << nl;
@@ -1025,10 +1025,10 @@ void Foam::argList::parse
         jobInfo_.add("root", rootPath_);
         jobInfo_.add("case", globalCase_);
         jobInfo_.add("nProcs", nProcs);
-        if (slaveProcs.size())
-        {
-            jobInfo_.add("slaves", slaveProcs);
-        }
+        // if (slaveProcs.size())
+        // {
+        //     jobInfo_.add("slaves", slaveProcs);
+        // }
         if (roots.size())
         {
             jobInfo_.add("roots", roots);
@@ -1115,7 +1115,7 @@ bool Foam::argList::setOption(const word& opt, const string& param)
             opt == "case"
          || opt == "parallel"
          || opt == "roots"
-         || opt == "hostRoots"
+        //  || opt == "hostRoots"
         )
         {
             FatalError
@@ -1189,7 +1189,7 @@ bool Foam::argList::unsetOption(const word& opt)
             opt == "case"
          || opt == "parallel"
          || opt == "roots"
-         || opt == "hostRoots"
+        //  || opt == "hostRoots"
         )
         {
             FatalError

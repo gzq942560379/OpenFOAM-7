@@ -712,4 +712,678 @@ void Foam::fileOperations::collatedFileOperation::setNProcs(const label nProcs)
 }
 
 
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+bool Foam::fileOperations::collatedFileOperation::mkDir
+(
+    const fileName& dir,
+    mode_t mode
+) const
+{
+    return masterOp<mode_t, mkDirOp>
+    (
+        dir,
+        mkDirOp(mode),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::chMod
+(
+    const fileName& fName,
+    mode_t mode
+) const
+{
+    return masterOp<mode_t, chModOp>
+    (
+        fName,
+        chModOp(mode),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+mode_t Foam::fileOperations::collatedFileOperation::mode
+(
+    const fileName& fName,
+    const bool checkVariants,
+    const bool followLink
+) const
+{
+    return masterOp<mode_t, modeOp>
+    (
+        fName,
+        modeOp(checkVariants, followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+Foam::fileType Foam::fileOperations::collatedFileOperation::type
+(
+    const fileName& fName,
+    const bool checkVariants,
+    const bool followLink
+) const
+{
+    return fileType
+    (
+        masterOp<label, typeOp>
+        (
+            fName,
+            typeOp(checkVariants, followLink),
+            Pstream::msgType(),
+            comm_
+        )
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::exists
+(
+    const fileName& fName,
+    const bool checkVariants,
+    const bool followLink
+) const
+{
+    return masterOp<bool, existsOp>
+    (
+        fName,
+        existsOp(checkVariants, followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::isDir
+(
+    const fileName& fName,
+    const bool followLink
+) const
+{
+    return masterOp<bool, isDirOp>
+    (
+        fName,
+        isDirOp(followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::isFile
+(
+    const fileName& fName,
+    const bool checkVariants,
+    const bool followLink
+) const
+{
+    return masterOp<bool, isFileOp>
+    (
+        fName,
+        isFileOp(checkVariants, followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+off_t Foam::fileOperations::collatedFileOperation::fileSize
+(
+    const fileName& fName,
+    const bool checkVariants,
+    const bool followLink
+) const
+{
+    return masterOp<off_t, fileSizeOp>
+    (
+        fName,
+        fileSizeOp(checkVariants, followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+time_t Foam::fileOperations::collatedFileOperation::lastModified
+(
+    const fileName& fName,
+    const bool checkVariants,
+    const bool followLink
+) const
+{
+    return masterOp<time_t, lastModifiedOp>
+    (
+        fName,
+        lastModifiedOp(checkVariants, followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+double Foam::fileOperations::collatedFileOperation::highResLastModified
+(
+    const fileName& fName,
+    const bool checkVariants,
+    const bool followLink
+) const
+{
+    return masterOp<double, lastModifiedHROp>
+    (
+        fName,
+        lastModifiedHROp(checkVariants, followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::mvBak
+(
+    const fileName& fName,
+    const std::string& ext
+) const
+{
+    return masterOp<bool, mvBakOp>
+    (
+        fName,
+        mvBakOp(ext),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::rm
+(
+    const fileName& fName
+) const
+{
+    return masterOp<bool, rmOp>
+    (
+        fName,
+        rmOp(),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::rmDir
+(
+    const fileName& dir
+) const
+{
+    return masterOp<bool, rmDirOp>
+    (
+        dir,
+        rmDirOp(),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+Foam::fileNameList Foam::fileOperations::collatedFileOperation::readDir
+(
+    const fileName& dir,
+    const fileType type,
+    const bool filtergz,
+    const bool followLink
+) const
+{
+    return masterOp<fileNameList, readDirOp>
+    (
+        dir,
+        readDirOp(type, filtergz, followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::cp
+(
+    const fileName& src,
+    const fileName& dst,
+    const bool followLink
+) const
+{
+    return masterOp<bool, cpOp>
+    (
+        src,
+        dst,
+        cpOp(followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::ln
+(
+    const fileName& src,
+    const fileName& dst
+) const
+{
+    return masterOp<bool, lnOp>
+    (
+        src,
+        dst,
+        lnOp(),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::mv
+(
+    const fileName& src,
+    const fileName& dst,
+    const bool followLink
+) const
+{
+    return masterOp<bool, mvOp>
+    (
+        src,
+        dst,
+        mvOp(followLink),
+        Pstream::msgType(),
+        comm_
+    );
+}
+
+
+Foam::fileName Foam::fileOperations::collatedFileOperation::filePath
+(
+    const bool checkGlobal,
+    const IOobject& io,
+    const word& typeName
+) const
+{
+    if (debug)
+    {
+        Pout<< "collatedFileOperation::filePath :"
+            << " objectPath:" << io.objectPath()
+            << " checkGlobal:" << checkGlobal << endl;
+    }
+
+    // Now that we have an IOobject path use it to detect & cache
+    // processor directory naming
+    (void)lookupProcessorsPath(io.objectPath());
+
+    // Trigger caching of times
+    (void)findTimes(io.time().path(), io.time().constant());
+
+    // Determine master filePath and scatter
+
+    fileName objPath;
+    pathType searchType = NOTFOUND;
+    word procsDir;
+    word newInstancePath;
+
+    if (Pstream::master(comm_))
+    {
+        // All masters search locally. Note that global objects might
+        // fail (except on master). This gets handled later on (in PARENTOBJECT)
+        objPath = filePathInfo
+        (
+            checkGlobal,
+            true,
+            io,
+            searchType,
+            procsDir,
+            newInstancePath
+        );
+
+        if (debug)
+        {
+            Pout<< "collatedFileOperation::filePath :"
+                << " master objPath:" << objPath
+                << " searchType:" << fileOperation::pathTypeNames_[searchType]
+                << " procsDir:" << procsDir << " instance:" << newInstancePath
+                << endl;
+        }
+
+    }
+
+    // Scatter the information about where the master found the object
+    // Note: use the worldComm to make sure all processors decide
+    //       the same type. Only procsDir is allowed to differ; searchType
+    //       and instance have to be same
+    {
+        label masterType(searchType);
+        Pstream::scatter(masterType);
+        searchType = pathType(masterType);
+    }
+    Pstream::scatter(newInstancePath);
+
+    if
+    (
+        checkGlobal
+     || searchType == fileOperation::PARENTOBJECT
+     || searchType == fileOperation::PROCBASEOBJECT
+     || searchType == fileOperation::PROCBASEINSTANCE
+     || io.local() == "uniform"
+    )
+    {
+            // Distribute master path. This makes sure it is seen as uniform
+            // and only gets read from the master.
+            Pstream::scatter(objPath);
+            Pstream::scatter(procsDir);
+    }
+    else
+    {
+        Pstream::scatter(procsDir, Pstream::msgType(), comm_);
+
+        // Use the master type to determine if additional information is
+        // needed to construct the local equivalent
+        switch (searchType)
+        {
+            case fileOperation::PARENTOBJECT:
+            case fileOperation::PROCBASEOBJECT:
+            case fileOperation::PROCBASEINSTANCE:
+            {
+                // Already handled above
+            }
+            break;
+
+            case fileOperation::ABSOLUTE:
+            case fileOperation::WRITEOBJECT:
+            case fileOperation::PROCUNCOLLATED:
+            case fileOperation::PROCOBJECT:
+            case fileOperation::FINDINSTANCE:
+            case fileOperation::PROCUNCOLLATEDINSTANCE:
+            case fileOperation::PROCINSTANCE:
+            {
+                // Construct equivalent local path
+                objPath = localObjectPath
+                (
+                    io,
+                    searchType,
+                    procsDir,
+                    newInstancePath
+                );
+            }
+            break;
+
+            case fileOperation::OBJECT:
+            case fileOperation::NOTFOUND:
+            {
+                // Retest all processors separately since some processors might
+                // have the file and some not (e.g. lagrangian data)
+
+                objPath = masterOp<fileName, fileOrNullOp>
+                (
+                    io.objectPath(),
+                    fileOrNullOp(true),
+                    Pstream::msgType(),
+                    comm_
+                );
+            }
+            break;
+        }
+    }
+
+    if (debug)
+    {
+        Pout<< "collatedFileOperation::filePath :"
+            << " Returning from file searching:" << endl
+            << "    objectPath:" << io.objectPath() << endl
+            << "    filePath  :" << objPath << endl << endl;
+    }
+    return objPath;
+}
+
+
+Foam::fileName Foam::fileOperations::collatedFileOperation::dirPath
+(
+    const bool checkGlobal,
+    const IOobject& io
+) const
+{
+    if (debug)
+    {
+        Pout<< "collatedFileOperation::dirPath :"
+            << " objectPath:" << io.objectPath()
+            << " checkGlobal:" << checkGlobal << endl;
+    }
+
+    // Now that we have an IOobject path use it to detect & cache
+    // processor directory naming
+    (void)lookupProcessorsPath(io.objectPath());
+
+    // Determine master dirPath and scatter
+
+    fileName objPath;
+    pathType searchType = NOTFOUND;
+    word procsDir;
+    word newInstancePath;
+
+    if (Pstream::master(comm_))
+    {
+        objPath = filePathInfo
+        (
+            checkGlobal,
+            false,
+            io,
+            searchType,
+            procsDir,
+            newInstancePath
+        );
+    }
+
+    {
+        label masterType(searchType);
+        Pstream::scatter(masterType);   //, Pstream::msgType(), comm_);
+        searchType = pathType(masterType);
+    }
+    Pstream::scatter(newInstancePath);  //, Pstream::msgType(), comm_);
+
+    if
+    (
+        checkGlobal
+     || searchType == fileOperation::PARENTOBJECT
+     || searchType == fileOperation::PROCBASEOBJECT
+     || searchType == fileOperation::PROCBASEINSTANCE
+     || io.local() == "uniform"
+    )
+    {
+            // Distribute master path. This makes sure it is seen as uniform
+            // and only gets read from the master.
+            Pstream::scatter(objPath);
+            Pstream::scatter(procsDir);
+    }
+    else
+    {
+        Pstream::scatter(procsDir, Pstream::msgType(), comm_);
+
+        // Use the master type to determine if additional information is
+        // needed to construct the local equivalent
+        switch (searchType)
+        {
+            case fileOperation::PARENTOBJECT:
+            case fileOperation::PROCBASEOBJECT:
+            case fileOperation::PROCBASEINSTANCE:
+            {
+                // Already handled above
+            }
+            break;
+
+            case fileOperation::ABSOLUTE:
+            case fileOperation::WRITEOBJECT:
+            case fileOperation::PROCUNCOLLATED:
+            case fileOperation::PROCOBJECT:
+            case fileOperation::FINDINSTANCE:
+            case fileOperation::PROCUNCOLLATEDINSTANCE:
+            case fileOperation::PROCINSTANCE:
+            {
+                // Construct equivalent local path
+                objPath = localObjectPath
+                (
+                    io,
+                    searchType,
+                    procsDir,
+                    newInstancePath
+                );
+            }
+            break;
+
+            case fileOperation::OBJECT:
+            case fileOperation::NOTFOUND:
+            {
+                // Retest all processors separately since some processors might
+                // have the file and some not (e.g. lagrangian data)
+                objPath = masterOp<fileName, fileOrNullOp>
+                (
+                    io.objectPath(),
+                    fileOrNullOp(false),
+                    Pstream::msgType(),
+                    comm_
+                );
+            }
+            break;
+        }
+    }
+
+    if (debug)
+    {
+        Pout<< "collatedFileOperation::dirPath :"
+            << " Returning from file searching:" << endl
+            << "    objectPath:" << io.objectPath() << endl
+            << "    filePath  :" << objPath << endl << endl;
+    }
+    return objPath;
+}
+
+
+bool Foam::fileOperations::collatedFileOperation::readHeader
+(
+    IOobject& io,
+    const fileName& fName,
+    const word& typeName
+) const
+{
+    bool ok = false;
+
+    if (debug)
+    {
+        Pout<< "collatedFileOperation::readHeader :" << endl
+            << "    objectPath:" << io.objectPath() << endl
+            << "    fName     :" << fName << endl;
+    }
+
+    // Get filePaths on world master
+    fileNameList filePaths(Pstream::nProcs(Pstream::worldComm));
+    filePaths[Pstream::myProcNo(Pstream::worldComm)] = fName;
+    Pstream::gatherList(filePaths, Pstream::msgType(), Pstream::worldComm);
+    bool uniform = uniformFile(filePaths);
+    Pstream::scatter(uniform, Pstream::msgType(), Pstream::worldComm);
+
+    if (uniform)
+    {
+        if (Pstream::master(Pstream::worldComm))
+        {
+            if (!fName.empty())
+            {
+                IFstream is(fName);
+
+                if (is.good())
+                {
+                    ok = io.readHeader(is);
+                    if (io.headerClassName() == decomposedBlockData::typeName)
+                    {
+                        // Read the header inside the container (master data)
+                        ok = decomposedBlockData::readMasterHeader(io, is);
+                    }
+                }
+            }
+        }
+        Pstream::scatter(ok, Pstream::msgType(), Pstream::worldComm);
+        Pstream::scatter
+        (
+            io.headerClassName(),
+            Pstream::msgType(),
+            Pstream::worldComm
+        );
+        Pstream::scatter(io.note(), Pstream::msgType(), Pstream::worldComm);
+    }
+    else
+    {
+        if (Pstream::nProcs(comm_) != Pstream::nProcs(Pstream::worldComm))
+        {
+            // Re-gather file paths on local master
+            filePaths.setSize(Pstream::nProcs(comm_));
+            filePaths[Pstream::myProcNo(comm_)] = fName;
+            Pstream::gatherList(filePaths, Pstream::msgType(), comm_);
+        }
+
+        boolList result(Pstream::nProcs(comm_), false);
+        wordList headerClassName(Pstream::nProcs(comm_));
+        stringList note(Pstream::nProcs(comm_));
+        if (Pstream::master(comm_))
+        {
+            forAll(filePaths, proci)
+            {
+                if (!filePaths[proci].empty())
+                {
+                    if (proci > 0 && filePaths[proci] == filePaths[proci-1])
+                    {
+                        result[proci] = result[proci-1];
+                        headerClassName[proci] = headerClassName[proci-1];
+                        note[proci] = note[proci-1];
+                    }
+                    else
+                    {
+                        IFstream is(filePaths[proci]);
+
+                        if (is.good())
+                        {
+                            result[proci] = io.readHeader(is);
+                            if
+                            (
+                                io.headerClassName()
+                             == decomposedBlockData::typeName
+                            )
+                            {
+                                // Read the header inside the container (master
+                                // data)
+                                result[proci] = decomposedBlockData::
+                                readMasterHeader
+                                (
+                                    io,
+                                    is
+                                );
+                            }
+                            headerClassName[proci] = io.headerClassName();
+                            note[proci] = io.note();
+                        }
+                    }
+                }
+            }
+        }
+        ok = scatterList(result, Pstream::msgType(), comm_);
+        io.headerClassName() = scatterList
+        (
+            headerClassName,
+            Pstream::msgType(),
+            comm_
+        );
+        io.note() = scatterList(note, Pstream::msgType(), comm_);
+    }
+
+    if (debug)
+    {
+        Pout<< "collatedFileOperation::readHeader :" << " ok:" << ok
+            << " class:" << io.headerClassName() << endl;
+    }
+    return ok;
+}
 // ************************************************************************* //
