@@ -131,7 +131,9 @@ class fvMesh
         // Storage management
 
             //- Clear geometry but not the old-time cell volumes
-            void clearGeomNotOldVol();
+            // remember to delete
+            // void clearGeomNotOldVol();
+            // end delete
 
             //- Clear geometry like clearGeomNotOldVol but recreate any
             //  geometric demand-driven data that was set
@@ -370,7 +372,9 @@ public:
             //- Return old-time cell volumes
             DimensionedField<scalar, volMesh>& setV0();
 
-
+            // remember to delete
+            void clearGeomNotOldVol();
+            // end delete
         // Write
 
             //- Write the underlying polyMesh and other data

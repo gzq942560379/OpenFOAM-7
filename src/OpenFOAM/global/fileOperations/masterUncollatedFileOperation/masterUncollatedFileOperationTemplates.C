@@ -121,7 +121,6 @@ Type Foam::fileOperations::masterUncollatedFileOperation::scatterList
             for(label i = 0; i < Pstream::nProcs(comm); ++i){
                 displs[i] = index;
                 std::copy(strList[i].begin(), strList[i].end(), &send_buffer[index]);
-                assert((strList[i].end() - strList[i].begin()) == strList[i].size());
                 index += strList[i].size();
             }
         }else{

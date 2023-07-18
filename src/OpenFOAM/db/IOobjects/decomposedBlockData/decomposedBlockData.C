@@ -35,6 +35,7 @@ License
 #include "SubList.H"
 #include "labelPair.H"
 #include "masterUncollatedFileOperation.H"
+#include <mpi.h>
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -427,16 +428,155 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
             << " stream:" << (isPtr.valid() ? isPtr().name() : "invalid")
             << " commsType:" << Pstream::commsTypeNames[commsType] << endl;
     }
-
     bool ok = false;
 
     List<char> data;
     autoPtr<ISstream> realIsPtr;
 
-    if (commsType == UPstream::commsTypes::scheduled)
+    // if (commsType == UPstream::commsTypes::scheduled)
+    // {
+    //     if (UPstream::master(comm))
+    //     {
+    //         Istream& is = isPtr();
+    //         is.fatalCheck("read(Istream&)");
+
+    //         // Read master data
+    //         {
+    //             is >> data;
+    //             is.fatalCheck("read(Istream&) : reading entry");
+
+    //             string buf(data.begin(), data.size());
+    //             realIsPtr = new IStringStream(fName, buf);
+
+    //             // Read header
+    //             if (!headerIO.readHeader(realIsPtr()))
+    //             {
+    //                 FatalIOErrorInFunction(realIsPtr())
+    //                     << "problem while reading header for object "
+    //                     << is.name() << exit(FatalIOError);
+    //             }
+    //         }
+
+    //         // Read slave data
+    //         for
+    //         (
+    //             label proci = 1;
+    //             proci < UPstream::nProcs(comm);
+    //             proci++
+    //         )
+    //         {
+    //             is >> data;
+    //             is.fatalCheck("read(Istream&) : reading entry");
+
+    //             OPstream os
+    //             (
+    //                 UPstream::commsTypes::scheduled,
+    //                 proci,
+    //                 0,
+    //                 UPstream::msgType(),
+    //                 comm
+    //             );
+    //             os << data;
+    //         }
+
+    //         ok = is.good();
+    //     }
+    //     else
+    //     {
+    //         IPstream is
+    //         (
+    //             UPstream::commsTypes::scheduled,
+    //             UPstream::masterNo(),
+    //             0,
+    //             UPstream::msgType(),
+    //             comm
+    //         );
+    //         is >> data;
+
+    //         string buf(data.begin(), data.size());
+    //         realIsPtr = new IStringStream(fName, buf);
+    //     }
+    // }
+    // else
+    // {
+    //     Info << "commsType != UPstream::commsTypes::scheduled" << endl;
+
+    //     PstreamBuffers pBufs
+    //     (
+    //         UPstream::commsTypes::nonBlocking,
+    //         UPstream::msgType(),
+    //         comm
+    //     );
+
+    //     if (UPstream::master(comm))
+    //     {
+    //         Istream& is = isPtr();
+    //         is.fatalCheck("read(Istream&)");
+
+    //         // Read master data
+    //         {
+    //             is >> data;
+    //             is.fatalCheck("read(Istream&) : reading entry");
+
+    //             string buf(data.begin(), data.size());
+    //             realIsPtr = new IStringStream(fName, buf);
+
+    //             // Read header
+    //             if (!headerIO.readHeader(realIsPtr()))
+    //             {
+    //                 FatalIOErrorInFunction(realIsPtr())
+    //                     << "problem while reading header for object "
+    //                     << is.name() << exit(FatalIOError);
+    //             }
+    //         }
+
+    //         // Read slave data
+    //         for
+    //         (
+    //             label proci = 1;
+    //             proci < UPstream::nProcs(comm);
+    //             proci++
+    //         )
+    //         {
+    //             List<char> elems(is);
+    //             is.fatalCheck("read(Istream&) : reading entry");
+
+    //             UOPstream os(proci, pBufs);
+    //             os << elems;
+    //         }
+
+    //         ok = is.good();
+    //     }
+
+    //     labelList recvSizes;
+    //     pBufs.finishedSends(recvSizes);
+
+    //     if (!UPstream::master(comm))
+    //     {
+    //         UIPstream is(UPstream::masterNo(), pBufs);
+    //         is >> data;
+
+    //         string buf(data.begin(), data.size());
+    //         realIsPtr = new IStringStream(fName, buf);
+    //     }
+
+    // }
+
     {
+        off_t fileSize = fileHandler().fileSize(fName);
+
+        char* send_buffer;
+        char* recv_buffer;
+        int* sendcounts;
+        int* displs;
+        int total_size = 0;
+
         if (UPstream::master(comm))
         {
+            send_buffer = new char[fileSize];
+            sendcounts = new int[UPstream::nProcs(comm)];
+            displs = new int[UPstream::nProcs(comm)];
+
             Istream& is = isPtr();
             is.fatalCheck("read(Istream&)");
 
@@ -444,6 +584,10 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
             {
                 is >> data;
                 is.fatalCheck("read(Istream&) : reading entry");
+
+                sendcounts[UPstream::masterNo()] = 0;
+                displs[UPstream::masterNo()] = total_size;
+                total_size += 0;
 
                 string buf(data.begin(), data.size());
                 realIsPtr = new IStringStream(fName, buf);
@@ -457,78 +601,7 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
                 }
             }
 
-            // Read slave data
-            for
-            (
-                label proci = 1;
-                proci < UPstream::nProcs(comm);
-                proci++
-            )
-            {
-                is >> data;
-                is.fatalCheck("read(Istream&) : reading entry");
-
-                OPstream os
-                (
-                    UPstream::commsTypes::scheduled,
-                    proci,
-                    0,
-                    UPstream::msgType(),
-                    comm
-                );
-                os << data;
-            }
-
-            ok = is.good();
-        }
-        else
-        {
-            IPstream is
-            (
-                UPstream::commsTypes::scheduled,
-                UPstream::masterNo(),
-                0,
-                UPstream::msgType(),
-                comm
-            );
-            is >> data;
-
-            string buf(data.begin(), data.size());
-            realIsPtr = new IStringStream(fName, buf);
-        }
-    }
-    else
-    {
-        PstreamBuffers pBufs
-        (
-            UPstream::commsTypes::nonBlocking,
-            UPstream::msgType(),
-            comm
-        );
-
-        if (UPstream::master(comm))
-        {
-            Istream& is = isPtr();
-            is.fatalCheck("read(Istream&)");
-
-            // Read master data
-            {
-                is >> data;
-                is.fatalCheck("read(Istream&) : reading entry");
-
-                string buf(data.begin(), data.size());
-                realIsPtr = new IStringStream(fName, buf);
-
-                // Read header
-                if (!headerIO.readHeader(realIsPtr()))
-                {
-                    FatalIOErrorInFunction(realIsPtr())
-                        << "problem while reading header for object "
-                        << is.name() << exit(FatalIOError);
-                }
-            }
-
-            // Read slave data
+            // Read data
             for
             (
                 label proci = 1;
@@ -539,23 +612,44 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
                 List<char> elems(is);
                 is.fatalCheck("read(Istream&) : reading entry");
 
-                UOPstream os(proci, pBufs);
-                os << elems;
+                std::copy(elems.begin(), elems.end(), &send_buffer[total_size]);
+                sendcounts[proci] = elems.size();
+                displs[proci] = total_size;
+                total_size += elems.size();
             }
 
             ok = is.good();
+        }else{
+            send_buffer = nullptr;
+            sendcounts = nullptr;
+            displs = nullptr;
         }
 
-        labelList recvSizes;
-        pBufs.finishedSends(recvSizes);
+        int recvcount;
+        MPI_Scatter(sendcounts, 1, MPI_INT,
+            &recvcount, 1, MPI_INT,
+            UPstream::masterNo(), UPstream::getPstreamCommunicator(comm));
+
+
+        recv_buffer = new char[recvcount];
+        MPI_Scatterv(send_buffer, sendcounts, displs, MPI_CHAR,
+            recv_buffer, recvcount, MPI_CHAR,
+            UPstream::masterNo(), UPstream::getPstreamCommunicator(comm));
+
 
         if (!UPstream::master(comm))
         {
-            UIPstream is(UPstream::masterNo(), pBufs);
-            is >> data;
-
-            string buf(data.begin(), data.size());
+            string buf(recv_buffer, recvcount);
             realIsPtr = new IStringStream(fName, buf);
+        }
+
+        if(UPstream::master(comm)){
+            delete[] send_buffer;
+            delete[] recv_buffer;
+            delete[] sendcounts;
+            delete[] displs;
+        }else{
+            delete[] recv_buffer;
         }
     }
 
@@ -575,11 +669,14 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
         realIsPtr().format(formatString);
     }
 
+
     word name(headerIO.name());
     Pstream::scatter(name, Pstream::msgType(), comm);
     headerIO.rename(name);
     Pstream::scatter(headerIO.headerClassName(), Pstream::msgType(), comm);
     Pstream::scatter(headerIO.note(), Pstream::msgType(), comm);
+
+
     // Pstream::scatter(headerIO.instance(), Pstream::msgType(), comm);
     // Pstream::scatter(headerIO.local(), Pstream::msgType(), comm);
 

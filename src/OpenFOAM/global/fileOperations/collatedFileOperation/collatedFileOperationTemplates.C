@@ -85,8 +85,7 @@ Type Foam::fileOperations::collatedFileOperation::masterOp
         FatalErrorInFunction
             << "Not support collatedFileOperation " << typeid(fileOp).name()
             << exit(FatalError);
-        Type ret;
-        return ret;
+        return Type();
     }
     else
     {

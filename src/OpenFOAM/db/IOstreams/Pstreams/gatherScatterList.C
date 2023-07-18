@@ -351,7 +351,7 @@ void Pstream::gatherListTree
 template<class T>
 void Pstream::gatherList(List<T>& Values, const int tag, const label comm)
 {
-    Info << "Pstream::gatherList start" << endl;
+    // Info << "Pstream::gatherList start" << endl;
     // if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
     // {
     //     gatherList(UPstream::linearCommunication(comm), Values, tag, comm);
@@ -361,11 +361,11 @@ void Pstream::gatherList(List<T>& Values, const int tag, const label comm)
     //     gatherList(UPstream::treeCommunication(comm), Values, tag, comm);
     // }
     // gatherListLinear(Values, tag, comm);
-    double gatherList_start = MPI_Wtime();
+    // double gatherList_start = MPI_Wtime();
     gatherListTree(Values, tag, comm);
-    double gatherList_end = MPI_Wtime();
-    Info << "gatherList time : " << gatherList_end - gatherList_start << endl;
-    Info << "Pstream::gatherList end" << endl;
+    // double gatherList_end = MPI_Wtime();
+    // Info << "gatherList time : " << gatherList_end - gatherList_start << endl;
+    // Info << "Pstream::gatherList end" << endl;
 }
 
 
@@ -678,7 +678,7 @@ void Pstream::scatterListTree
 template<class T>
 void Pstream::scatterList(List<T>& Values, const int tag, const label comm)
 {
-    Info << "Pstream::scatterList start" << endl;
+    // Info << "Pstream::scatterList start" << endl;
     // if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
     // {
     //     scatterList(UPstream::linearCommunication(comm), Values, tag, comm);
@@ -687,11 +687,11 @@ void Pstream::scatterList(List<T>& Values, const int tag, const label comm)
     // {
     //     scatterList(UPstream::treeCommunication(comm), Values, tag, comm);
     // }
-    double scatterList_start = MPI_Wtime();
+    // double scatterList_start = MPI_Wtime();
     scatterListTree(Values, tag, comm);
-    double scatterList_end = MPI_Wtime();
-    Info << "scatterList time : " << scatterList_end - scatterList_start << endl;
-    Info << "Pstream::scatterList end" << endl;
+    // double scatterList_end = MPI_Wtime();
+    // Info << "scatterList time : " << scatterList_end - scatterList_start << endl;
+    // Info << "Pstream::scatterList end" << endl;
 }
 
 
