@@ -35,6 +35,8 @@ Note
 #include "allReduce.H"
 
 #include <mpi.h>
+#include <omp.h>
+#include <iostream>
 
 #include <cstring>
 #include <cstdlib>
@@ -69,6 +71,7 @@ bool Foam::UPstream::init(int& argc, char**& argv, const bool needsThread)
 {
     // MPI_Init(&argc, &argv);
     int provided_thread_support;
+    double mpi_init_start = omp_get_wtime();
     MPI_Init_thread
     (
         &argc,
@@ -80,6 +83,8 @@ bool Foam::UPstream::init(int& argc, char**& argv, const bool needsThread)
         ),
         &provided_thread_support
     );
+    double mpi_init_end = omp_get_wtime();
+    double mpi_init_time = mpi_init_end - mpi_init_start;
 
     // int numprocs;
     // MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
@@ -88,6 +93,10 @@ bool Foam::UPstream::init(int& argc, char**& argv, const bool needsThread)
 
     int myGlobalRank;
     MPI_Comm_rank(MPI_COMM_WORLD, &myGlobalRank);
+    if(myGlobalRank == 0){
+        std::cout << "MPI Init time : " << mpi_init_time << std::endl;
+    }
+
     MPI_Comm_split
     (
         MPI_COMM_WORLD,
