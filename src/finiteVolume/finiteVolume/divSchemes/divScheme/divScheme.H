@@ -122,6 +122,11 @@ public:
             Istream& schemeData
         );
 
+        static tmp<divScheme<Type>> NewGauss
+        (
+            const fvMesh& mesh,
+            Istream& schemeData
+        );
 
     //- Destructor
     virtual ~divScheme();

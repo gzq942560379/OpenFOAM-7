@@ -67,6 +67,10 @@ tmp<snGradScheme<Type>> snGradScheme<Type>::New
 
     const word schemeName(schemeData);
 
+    if(schemeName != "orthogonal"){
+        Info << "snGradScheme<Type>::New schemeName : " << schemeName << endl;
+    }
+
     typename MeshConstructorTable::iterator constructorIter =
         MeshConstructorTablePtr_->find(schemeName);
 

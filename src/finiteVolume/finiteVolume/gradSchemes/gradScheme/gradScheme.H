@@ -111,7 +111,11 @@ public:
             const fvMesh& mesh,
             Istream& schemeData
         );
-
+        static tmp<gradScheme<Type>> NewGauss
+        (
+            const fvMesh& mesh,
+            Istream& schemeData
+        );
 
     //- Destructor
     virtual ~gradScheme();

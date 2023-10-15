@@ -233,6 +233,52 @@ gaussLaplacianScheme<Type, GType>::fvcLaplacian
     return tLaplacian;
 }
 
+template<class Type, class GType>
+tmp<laplacianScheme<Type, GType>> laplacianScheme<Type, GType>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<laplacianScheme<Type, GType>>(new gaussLaplacianScheme<Type, GType>(mesh, schemeData));
+}
+
+
+template<>
+tmp<laplacianScheme<scalar, scalar>> laplacianScheme<scalar, scalar>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<laplacianScheme<scalar, scalar>>(new gaussLaplacianScheme<scalar, scalar>(mesh, schemeData));
+}
+
+template<>
+tmp<laplacianScheme<Vector<scalar>, scalar>> laplacianScheme<Vector<scalar>, scalar>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<laplacianScheme<Vector<scalar>, scalar>>(new gaussLaplacianScheme<Vector<scalar>, scalar>(mesh, schemeData));
+}
+
+template<>
+tmp<laplacianScheme<SymmTensor<scalar>, SymmTensor<scalar>>> laplacianScheme<SymmTensor<scalar>, SymmTensor<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<laplacianScheme<SymmTensor<scalar>, SymmTensor<scalar>>>(new gaussLaplacianScheme<SymmTensor<scalar>, SymmTensor<scalar>>(mesh, schemeData));
+}
+
+
+template<>
+tmp<laplacianScheme<scalar, SymmTensor<scalar>>> laplacianScheme<scalar, SymmTensor<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<laplacianScheme<scalar, SymmTensor<scalar>>>(new gaussLaplacianScheme<scalar, SymmTensor<scalar>>(mesh, schemeData));
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -81,6 +81,8 @@ Foam::autoPtr<Foam::lduMatrix::smoother> Foam::lduMatrix::smoother::New
         e.stream() >> name;
     }
 
+    Info << "Foam::lduMatrix::smoother::New name : " << name << endl;
+
     // not (yet?) needed:
     // const dictionary& controls = e.isDict() ? e.dict() : dictionary::null;
 

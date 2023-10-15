@@ -65,6 +65,11 @@ tmp<ddtScheme<Type>> ddtScheme<Type>::New
     }
 
     const word schemeName(schemeData);
+    if(schemeName == "Euler"){
+        return NewEuler(mesh, schemeData);
+    }else{
+        Info << "ddtScheme<Type>::New schemeData : " << schemeName << endl;
+    }
 
     typename IstreamConstructorTable::iterator cstrIter =
         IstreamConstructorTablePtr_->find(schemeName);

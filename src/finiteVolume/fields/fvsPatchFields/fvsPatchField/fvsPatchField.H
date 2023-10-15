@@ -266,6 +266,11 @@ public:
             const fvsPatchField<Type2>&
         );
 
+        static tmp<fvsPatchField<Type>> NewProcessorType
+        (
+            const fvPatch& p,
+            const DimensionedField<Type, surfaceMesh>& iF
+        );
 
     //- Destructor
     virtual ~fvsPatchField<Type>()

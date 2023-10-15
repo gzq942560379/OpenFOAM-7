@@ -356,6 +356,7 @@ Foam::autoPtr<Foam::GAMGProcAgglomeration> Foam::GAMGProcAgglomeration::New
     const dictionary& controlDict
 )
 {
+    Info << "Foam::GAMGProcAgglomeration::New type : " << type << endl;
     if (debug)
     {
         InfoInFunction << "Constructing GAMGProcAgglomeration" << endl;

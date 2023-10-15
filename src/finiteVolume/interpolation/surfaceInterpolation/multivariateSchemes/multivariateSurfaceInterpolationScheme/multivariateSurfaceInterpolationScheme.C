@@ -67,6 +67,11 @@ Foam::multivariateSurfaceInterpolationScheme<Type>::New
     }
 
     const word schemeName(schemeData);
+    if(schemeName == "upwind"){
+        return NewUpwind(mesh, vtfs, faceFlux, schemeData);
+    }else{
+        Info << "Foam::multivariateSurfaceInterpolationScheme<Type>::New schemeName : " << schemeName << endl;
+    }
 
     typename IstreamConstructorTable::iterator constructorIter =
         IstreamConstructorTablePtr_->find(schemeName);

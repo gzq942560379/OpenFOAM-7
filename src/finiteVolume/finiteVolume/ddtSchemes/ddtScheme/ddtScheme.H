@@ -119,6 +119,11 @@ public:
             Istream& schemeData
         );
 
+        static tmp<ddtScheme<Type>> NewEuler
+        (
+            const fvMesh& mesh,
+            Istream& schemeData
+        );
 
     //- Destructor
     virtual ~ddtScheme();

@@ -106,7 +106,77 @@ multivariateGaussConvectionScheme<Type>::fvcDiv
     ).fvcDiv(faceFlux, vf);
 }
 
+template<class Type>
+tmp<convectionScheme<Type>> convectionScheme<Type>::NewMultivariateGauss
+(
+    const fvMesh& mesh,
+    const typename multivariateSurfaceInterpolationScheme<Type>::
+        fieldTable& fields,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<Type>>(new multivariateGaussConvectionScheme<Type>(mesh, fields, faceFlux, schemeData));
+}
 
+template<>
+tmp<convectionScheme<scalar>> convectionScheme<scalar>::NewMultivariateGauss
+(
+    const fvMesh& mesh,
+    const typename multivariateSurfaceInterpolationScheme<scalar>::
+        fieldTable& fields,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<scalar>>(new multivariateGaussConvectionScheme<scalar>(mesh, fields, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<Vector<scalar>>> convectionScheme<Vector<scalar>>::NewMultivariateGauss
+(
+    const fvMesh& mesh,
+    const typename multivariateSurfaceInterpolationScheme<Vector<scalar>>::
+        fieldTable& fields,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<Vector<scalar>>>(new multivariateGaussConvectionScheme<Vector<scalar>>(mesh, fields, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<Tensor<scalar>>> convectionScheme<Tensor<scalar>>::NewMultivariateGauss
+(
+    const fvMesh& mesh,
+    const typename multivariateSurfaceInterpolationScheme<Tensor<scalar>>::
+        fieldTable& fields,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<Tensor<scalar>>>(new multivariateGaussConvectionScheme<Tensor<scalar>>(mesh, fields, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<SymmTensor<scalar>>> convectionScheme<SymmTensor<scalar>>::NewMultivariateGauss
+(
+    const fvMesh& mesh,
+    const typename multivariateSurfaceInterpolationScheme<SymmTensor<scalar>>::
+        fieldTable& fields,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<SymmTensor<scalar>>>(new multivariateGaussConvectionScheme<SymmTensor<scalar>>(mesh, fields, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<SphericalTensor<scalar>>> convectionScheme<SphericalTensor<scalar>>::NewMultivariateGauss
+(
+    const fvMesh& mesh,
+    const typename multivariateSurfaceInterpolationScheme<SphericalTensor<scalar>>::
+        fieldTable& fields,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<SphericalTensor<scalar>>>(new multivariateGaussConvectionScheme<SphericalTensor<scalar>>(mesh, fields, faceFlux, schemeData));
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace fv

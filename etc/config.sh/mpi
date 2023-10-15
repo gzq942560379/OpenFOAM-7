@@ -262,6 +262,14 @@ FUJITSU-MPI)
     export MPI_ARCH_INC="-isystem $MPI_ROOT/include/mpi/fujitsu/"
     export MPI_ARCH_LIBS="-L$MPI_ROOT/lib64 -lmpi"
     ;;
+SWMPI)
+    export MPI_ROOT=/usr/sw/mpi/mpi_current
+    export MPI_ARCH_PATH=$MPI_ROOT
+    export FOAM_MPI=mpicc
+    export MPI_ARCH_FLAGS=
+    export MPI_ARCH_INC="-isystem $MPI_ROOT/include/"
+    export MPI_ARCH_LIBS="-L$MPI_ROOT/lib/single_static -lmpi"
+    ;;
 *)
     export FOAM_MPI=dummy
     ;;

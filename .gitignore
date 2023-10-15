@@ -36,6 +36,7 @@ lnInclude
 linux*Clang*/
 linux*Gcc*/
 linux*Icc*/
+linux*SW*/
 solaris*Gcc*/
 SunOS*Gcc*/
 platforms/
@@ -81,6 +82,8 @@ doc/Doxygen/DTAGS
 /.project
 /.dir-locals.el
 /.ycm*
+
+/.vscode
 
 # Ignore the test directory
 /tutorialsTest

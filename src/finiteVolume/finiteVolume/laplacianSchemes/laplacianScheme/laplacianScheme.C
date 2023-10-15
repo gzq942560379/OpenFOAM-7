@@ -64,6 +64,11 @@ tmp<laplacianScheme<Type, GType>> laplacianScheme<Type, GType>::New
     }
 
     const word schemeName(schemeData);
+    if(schemeName == "Gauss"){
+        return NewGauss(mesh, schemeData);
+    }else{
+        Info << "laplacianScheme<Type, GType>::New schemeName : " << schemeName << endl;
+    }
 
     typename IstreamConstructorTable::iterator cstrIter =
         IstreamConstructorTablePtr_->find(schemeName);

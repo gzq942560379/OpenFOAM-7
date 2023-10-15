@@ -53,6 +53,11 @@ Foam::tmp<Foam::fv::gradScheme<Type>> Foam::fv::gradScheme<Type>::New
     }
 
     const word schemeName(schemeData);
+    if(schemeName == "Gauss"){
+        return NewGauss(mesh, schemeData);
+    }else{
+        Info << "Foam::fv::gradScheme<Type>::New schemeName : " << schemeName << endl; 
+    }
 
     typename IstreamConstructorTable::iterator cstrIter =
         IstreamConstructorTablePtr_->find(schemeName);

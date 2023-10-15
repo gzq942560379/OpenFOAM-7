@@ -748,6 +748,71 @@ tmp<surfaceScalarField> EulerDdtScheme<Type>::meshPhi
     return mesh().phi();
 }
 
+template<class Type>
+tmp<ddtScheme<Type>> ddtScheme<Type>::NewEuler
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<ddtScheme<Type>>(
+        new EulerDdtScheme<Type>(mesh, schemeData)
+    );
+}
+
+template<>
+tmp<ddtScheme<scalar>> ddtScheme<scalar>::NewEuler
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<ddtScheme<scalar>>(
+        new EulerDdtScheme<scalar>(mesh, schemeData)
+    );
+}
+
+template<>
+tmp<ddtScheme<Vector<scalar>>> ddtScheme<Vector<scalar>>::NewEuler
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<ddtScheme<Vector<scalar>>>(
+        new EulerDdtScheme<Vector<scalar>>(mesh, schemeData)
+    );
+}
+
+template<>
+tmp<ddtScheme<SymmTensor<scalar>>> ddtScheme<SymmTensor<scalar>>::NewEuler
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<ddtScheme<SymmTensor<scalar>>>(
+        new EulerDdtScheme<SymmTensor<scalar>>(mesh, schemeData)
+    );
+}
+
+template<>
+tmp<ddtScheme<Tensor<scalar>>> ddtScheme<Tensor<scalar>>::NewEuler
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<ddtScheme<Tensor<scalar>>>(
+        new EulerDdtScheme<Tensor<scalar>>(mesh, schemeData)
+    );
+}
+
+template<>
+tmp<ddtScheme<SphericalTensor<scalar>>> ddtScheme<SphericalTensor<scalar>>::NewEuler
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<ddtScheme<SphericalTensor<scalar>>>(
+        new EulerDdtScheme<SphericalTensor<scalar>>(mesh, schemeData)
+    );
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

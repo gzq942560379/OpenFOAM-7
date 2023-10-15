@@ -68,6 +68,53 @@ gaussDivScheme<Type>::fvcDiv
 }
 
 
+template<class Type>
+tmp<divScheme<Type>> divScheme<Type>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<divScheme<Type>>(new gaussDivScheme<Type>(mesh, schemeData));
+}
+
+template<>
+tmp<divScheme<scalar>> divScheme<scalar>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<divScheme<scalar>>(new gaussDivScheme<scalar>(mesh, schemeData));
+}
+
+template<>
+tmp<divScheme<Vector<scalar>>> divScheme<Vector<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<divScheme<Vector<scalar>>>(new gaussDivScheme<Vector<scalar>>(mesh, schemeData));
+}
+
+template<>
+tmp<divScheme<Tensor<scalar>>> divScheme<Tensor<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<divScheme<Tensor<scalar>>>(new gaussDivScheme<Tensor<scalar>>(mesh, schemeData));
+}
+
+template<>
+tmp<divScheme<SymmTensor<scalar>>> divScheme<SymmTensor<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<divScheme<SymmTensor<scalar>>>(new gaussDivScheme<SymmTensor<scalar>>(mesh, schemeData));
+}
+
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace fv

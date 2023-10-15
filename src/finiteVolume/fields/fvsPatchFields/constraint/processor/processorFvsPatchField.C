@@ -128,5 +128,64 @@ template<class Type>
 Foam::processorFvsPatchField<Type>::~processorFvsPatchField()
 {}
 
+template<class Type>
+Foam::tmp<Foam::fvsPatchField<Type>>
+Foam::fvsPatchField<Type>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Type, surfaceMesh>& iF
+){
+    return tmp<fvsPatchField<Type>>(new processorFvsPatchField<Type>(p, iF));
+}
 
+template<>
+Foam::tmp<Foam::fvsPatchField<Foam::scalar>>
+Foam::fvsPatchField<Foam::scalar>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::scalar, surfaceMesh>& iF
+){
+    return tmp<fvsPatchField<Foam::scalar>>(new processorFvsPatchField<Foam::scalar>(p, iF));
+}
+
+template<>
+Foam::tmp<Foam::fvsPatchField<Foam::Vector<Foam::scalar>>>
+Foam::fvsPatchField<Foam::Vector<Foam::scalar>>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::Vector<Foam::scalar>, surfaceMesh>& iF
+){
+    return tmp<fvsPatchField<Foam::Vector<Foam::scalar>>>(new processorFvsPatchField<Foam::Vector<Foam::scalar>>(p, iF));
+}
+
+
+template<>
+Foam::tmp<Foam::fvsPatchField<Foam::SymmTensor<Foam::scalar>>>
+Foam::fvsPatchField<Foam::SymmTensor<Foam::scalar>>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::SymmTensor<Foam::scalar>, surfaceMesh>& iF
+){
+    return tmp<fvsPatchField<Foam::SymmTensor<Foam::scalar>>>(new processorFvsPatchField<Foam::SymmTensor<Foam::scalar>>(p, iF));
+}
+
+template<>
+Foam::tmp<Foam::fvsPatchField<Foam::Tensor<Foam::scalar>>>
+Foam::fvsPatchField<Foam::Tensor<Foam::scalar>>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::Tensor<Foam::scalar>, surfaceMesh>& iF
+){
+    return tmp<fvsPatchField<Foam::Tensor<Foam::scalar>>>(new processorFvsPatchField<Foam::Tensor<Foam::scalar>>(p, iF));
+}
+
+template<>
+Foam::tmp<Foam::fvsPatchField<Foam::SphericalTensor<Foam::scalar>>>
+Foam::fvsPatchField<Foam::SphericalTensor<Foam::scalar>>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::SphericalTensor<Foam::scalar>, surfaceMesh>& iF
+){
+    return tmp<fvsPatchField<Foam::SphericalTensor<Foam::scalar>>>(new processorFvsPatchField<Foam::SphericalTensor<Foam::scalar>>(p, iF));
+}
 // ************************************************************************* //

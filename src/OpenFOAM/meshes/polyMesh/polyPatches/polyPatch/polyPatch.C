@@ -245,6 +245,8 @@ Foam::polyPatch::~polyPatch()
 
 bool Foam::polyPatch::constraintType(const word& pt)
 {
+    if(pt == "wall") return false;
+    if(pt == "processor") return true;
     return pointPatchField<scalar>::pointPatchConstructorTablePtr_->found(pt);
 }
 

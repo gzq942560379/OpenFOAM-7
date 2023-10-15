@@ -43,6 +43,8 @@ Foam::autoPtr<Foam::GAMGInterface> Foam::GAMGInterface::New
 {
     const word coupleType(fineInterface.type());
 
+    Info << "Foam::GAMGInterface::New coupleType : " << coupleType << endl;
+
     lduInterfaceConstructorTable::iterator cstrIter =
         lduInterfaceConstructorTablePtr_->find(coupleType);
 
@@ -79,6 +81,7 @@ Foam::autoPtr<Foam::GAMGInterface> Foam::GAMGInterface::New
     Istream& is
 )
 {
+    Info << "Foam::GAMGInterface::New coupleType : " << coupleType << endl;
     IstreamConstructorTable::iterator cstrIter =
         IstreamConstructorTablePtr_->find(coupleType);
 

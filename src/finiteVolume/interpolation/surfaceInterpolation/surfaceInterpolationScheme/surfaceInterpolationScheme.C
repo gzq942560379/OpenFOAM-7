@@ -52,6 +52,10 @@ Foam::surfaceInterpolationScheme<Type>::New
     }
 
     const word schemeName(schemeData);
+    
+    if(schemeName != "linear"){
+        Info << "Foam::surfaceInterpolationScheme<Type>::New schemeName : " << schemeName << endl;
+    }
 
     if (surfaceInterpolation::debug || surfaceInterpolationScheme<Type>::debug)
     {

@@ -157,6 +157,11 @@ public:
             Istream& schemeData
         );
 
+        static tmp<laplacianScheme<Type, GType>> NewGauss
+        (
+            const fvMesh& mesh,
+            Istream& schemeData
+        );
 
     //- Destructor
     virtual ~laplacianScheme();

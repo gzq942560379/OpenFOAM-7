@@ -26,6 +26,7 @@ License
 #include "fileOperationInitialise.H"
 #include "addToRunTimeSelectionTable.H"
 #include "OSspecific.H"
+#include "collatedFileOperation.H"
 
 /* * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * */
 
@@ -60,6 +61,12 @@ Foam::fileOperations::fileOperationInitialise::New
     if (debug)
     {
         InfoInFunction << "Constructing fileOperationInitialise" << endl;
+    }
+
+    if(type == "collated"){
+        return autoPtr<fileOperationInitialise>(new collatedFileOperationInitialise(argc, argv));
+    }else{
+        Info << "Foam::fileOperations::fileOperationInitialise::New type : " << type << endl;
     }
 
     wordConstructorTable::iterator cstrIter =

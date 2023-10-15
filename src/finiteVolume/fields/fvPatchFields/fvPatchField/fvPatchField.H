@@ -282,7 +282,14 @@ public:
             const fvPatchField<Type2>&
         );
 
-
+        //- Return a pointer to a new patchField created on freestore
+        //  from dictionary
+        static tmp<fvPatchField<Type>> NewProcessorType
+        (
+            const fvPatch&,
+            const DimensionedField<Type, volMesh>&,
+            const dictionary&
+        );
     //- Destructor
     virtual ~fvPatchField<Type>()
     {}

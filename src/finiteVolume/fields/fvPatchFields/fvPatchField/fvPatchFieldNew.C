@@ -115,6 +115,14 @@ Foam::tmp<Foam::fvPatchField<Type>> Foam::fvPatchField<Type>::New
             << "patchFieldType = " << patchFieldType
             << endl;
     }
+    
+    if(patchFieldType == "processor"){
+        return NewProcessorType(p, iF, dict);
+    }else{
+        if(patchFieldType != "zeroGradient"){
+            Info << "Foam::fvPatchField<Type>::New patchFieldType : " << patchFieldType << endl;
+        }
+    }
 
     typename dictionaryConstructorTable::iterator cstrIter
         = dictionaryConstructorTablePtr_->find(patchFieldType);

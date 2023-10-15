@@ -376,7 +376,7 @@ then
     unset targetType
     if grep -e '^ *LIB *=' "$MakeDir/files" >/dev/null 2>&1
     then
-        targetType=libso
+        targetType=lib
     fi
 elif grep -e '^ *EXE *=' "$MakeDir/files" >/dev/null 2>&1
 then

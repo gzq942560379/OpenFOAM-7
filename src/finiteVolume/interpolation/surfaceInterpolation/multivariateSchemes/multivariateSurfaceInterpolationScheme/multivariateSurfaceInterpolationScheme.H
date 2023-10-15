@@ -135,6 +135,13 @@ public:
             Istream& schemeData
         );
 
+        static tmp<multivariateSurfaceInterpolationScheme<Type>> NewUpwind
+        (
+            const fvMesh& mesh,
+            const fieldTable& fields,
+            const surfaceScalarField& faceFlux,
+            Istream& schemeData
+        );
 
     //- Destructor
     virtual ~multivariateSurfaceInterpolationScheme();

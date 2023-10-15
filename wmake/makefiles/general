@@ -55,7 +55,7 @@ WM_SCRIPTS      = $(WM_DIR)/scripts
 #------------------------------------------------------------------------------
 
 LIB_SRC         = $(WM_PROJECT_DIR)/src
-LIB_PLATFORMS   = $(WM_PROJECT_DIR)/platforms/$(WM_OPTIONS)/lib
+LIB_PLATFORMS   = -L$(FOAM_LIBBIN) -L$(FOAM_LIBBIN)/$(FOAM_MPI)
 OBJECTS_DIR     = $(MAKE_DIR)/$(WM_OPTIONS)
 
 SYS_INC         =
@@ -64,7 +64,7 @@ SYS_LIBS        =
 PROJECT_INC     = -I$(LIB_SRC)/$(WM_PROJECT)/lnInclude \
 		     -I$(LIB_SRC)/OSspecific/$(WM_OSTYPE)/lnInclude
 
-PROJECT_LIBS    = -l$(WM_PROJECT)
+PROJECT_LIBS    = -l$(WM_PROJECT) $(FOAM_LIBBIN)/libOSspecific.o  -lPstream
 
 EXE_INC         =
 EXE_LIBS        =
@@ -139,7 +139,7 @@ silent:
 $(EXE): $(OBJECTS)
 	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
 	$(call QUIET_MESSAGE,ld,$(EXE))
-	$E $(LINKEXE) $(OBJECTS) -L$(LIB_PLATFORMS) \
+	$(LINKEXE) $(OBJECTS) $(LIB_PLATFORMS) \
 	    $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
 	    $(LINK_LIBS) $(GLIBS) -o $(EXE)
 
@@ -166,7 +166,7 @@ libso: $(LIB).$(SO) | silent
 $(LIB).$(SO): $(OBJECTS)
 	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
 	$(call QUIET_MESSAGE,ld,$(LIB).$(SO))
-	$E $(LINKLIBSO) $(OBJECTS) -L$(LIB_PLATFORMS) \
+	$E $(LINKLIBSO) $(OBJECTS) $(LIB_PLATFORMS) \
 	    $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB).$(SO)
 
 .PHONY: lib

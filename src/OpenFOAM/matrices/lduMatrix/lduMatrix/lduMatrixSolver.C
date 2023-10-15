@@ -25,6 +25,8 @@ License
 
 #include "lduMatrix.H"
 #include "diagonalSolver.H"
+#include "PCG.H"
+#include "PBiCGStab.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -66,6 +68,20 @@ Foam::autoPtr<Foam::lduMatrix::solver> Foam::lduMatrix::solver::New
     }
     else if (matrix.symmetric())
     {
+        if(name == "PCG"){
+            return autoPtr<lduMatrix::solver>(
+                new PCG(
+                    fieldName,
+                    matrix,
+                    interfaceBouCoeffs,
+                    interfaceIntCoeffs,
+                    interfaces,
+                    solverControls
+                )
+            );
+        }else{
+            Info << "Foam::lduMatrix::solver::New name : " << name << endl;
+        }
         symMatrixConstructorTable::iterator constructorIter =
             symMatrixConstructorTablePtr_->find(name);
 
@@ -93,6 +109,20 @@ Foam::autoPtr<Foam::lduMatrix::solver> Foam::lduMatrix::solver::New
     }
     else if (matrix.asymmetric())
     {
+        if(name == "PBiCGStab"){
+            return autoPtr<lduMatrix::solver>(
+                new PBiCGStab(
+                    fieldName,
+                    matrix,
+                    interfaceBouCoeffs,
+                    interfaceIntCoeffs,
+                    interfaces,
+                    solverControls
+                )
+            );
+        }else{
+            Info << "Foam::lduMatrix::solver::New name : " << name << endl;
+        }
         asymMatrixConstructorTable::iterator constructorIter =
             asymMatrixConstructorTablePtr_->find(name);
 

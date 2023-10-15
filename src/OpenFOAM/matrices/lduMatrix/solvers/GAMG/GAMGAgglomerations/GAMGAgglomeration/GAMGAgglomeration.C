@@ -297,6 +297,8 @@ const Foam::GAMGAgglomeration& Foam::GAMGAgglomeration::New
             controlDict.lookupOrDefault<word>("agglomerator", "faceAreaPair")
         );
 
+        Info << "Foam::GAMGAgglomeration::New agglomeratorType : " << agglomeratorType << endl;
+
         const_cast<Time&>(mesh.thisDb().time()).libs().open
         (
             controlDict,
@@ -352,6 +354,8 @@ const Foam::GAMGAgglomeration& Foam::GAMGAgglomeration::New
             controlDict.lookupOrDefault<word>("agglomerator", "faceAreaPair")
         );
 
+        Info << "Foam::GAMGAgglomeration::New agglomeratorType : " << agglomeratorType << endl;
+
         const_cast<Time&>(mesh.thisDb().time()).libs().open
         (
             controlDict,
@@ -397,6 +401,8 @@ Foam::autoPtr<Foam::GAMGAgglomeration> Foam::GAMGAgglomeration::New
     (
         controlDict.lookupOrDefault<word>("agglomerator", "faceAreaPair")
     );
+
+    Info << "Foam::GAMGAgglomeration::New agglomeratorType : " << agglomeratorType << endl;
 
     const_cast<Time&>(mesh.thisDb().time()).libs().open
     (

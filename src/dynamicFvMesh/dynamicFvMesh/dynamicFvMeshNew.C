@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "staticFvMesh.H"
+#include "dynamicRefineFvMesh.H"
 #include "Time.H"
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -39,6 +40,12 @@ Foam::autoPtr<Foam::dynamicFvMesh> Foam::dynamicFvMesh::New(const IOobject& io)
         const word dynamicFvMeshTypeName(dict.lookup("dynamicFvMesh"));
 
         Info<< "Selecting dynamicFvMesh " << dynamicFvMeshTypeName << endl;
+
+        if(dynamicFvMeshTypeName == "dynamicRefineFvMesh"){
+            return autoPtr<dynamicFvMesh>(new dynamicRefineFvMesh(io));
+        }else{
+            Info << "Foam::dynamicFvMesh::New dynamicFvMeshTypeName : " << dynamicFvMeshTypeName << endl;
+        }
 
         const_cast<Time&>(io.time()).libs().open
         (

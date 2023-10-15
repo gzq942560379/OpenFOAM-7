@@ -175,4 +175,31 @@ void Foam::fv::gaussGrad<Type>::correctBoundaryConditions
 }
 
 
+template<class Type>
+Foam::tmp<Foam::fv::gradScheme<Type>> Foam::fv::gradScheme<Type>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<gradScheme<Type>>(new gaussGrad<Type>(mesh, schemeData));
+}
+
+template<>
+Foam::tmp<Foam::fv::gradScheme<Foam::scalar>> Foam::fv::gradScheme<Foam::scalar>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<gradScheme<Foam::scalar>>(new gaussGrad<Foam::scalar>(mesh, schemeData));
+}
+
+template<>
+Foam::tmp<Foam::fv::gradScheme<Foam::Vector<Foam::scalar>>> Foam::fv::gradScheme<Foam::Vector<Foam::scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    Istream& schemeData
+){
+    return tmp<gradScheme<Foam::Vector<Foam::scalar>>>(new gaussGrad<Foam::Vector<Foam::scalar>>(mesh, schemeData));
+}
+
 // ************************************************************************* //

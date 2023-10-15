@@ -602,5 +602,69 @@ bool Foam::processorFvPatchField<Type>::ready() const
     return true;
 }
 
+template<class Type>
+Foam::tmp<Foam::fvPatchField<Type>>
+Foam::fvPatchField<Type>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Type, volMesh>& iF,
+    const dictionary& dict
+){
+    return tmp<fvPatchField<Type>>(new processorFvPatchField<Type>(p, iF, dict));
+}
 
+
+template<>
+Foam::tmp<Foam::fvPatchField<Foam::scalar>>
+Foam::fvPatchField<Foam::scalar>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::scalar, volMesh>& iF,
+    const dictionary& dict
+){
+    return tmp<fvPatchField<Foam::scalar>>(new processorFvPatchField<Foam::scalar>(p, iF, dict));
+}
+
+template<>
+Foam::tmp<Foam::fvPatchField<Foam::Vector<Foam::scalar>>>
+Foam::fvPatchField<Foam::Vector<Foam::scalar>>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::Vector<Foam::scalar>, volMesh>& iF,
+    const dictionary& dict
+){
+    return tmp<fvPatchField<Foam::Vector<Foam::scalar>>>(new processorFvPatchField<Foam::Vector<Foam::scalar>>(p, iF, dict));
+}
+
+template<>
+Foam::tmp<Foam::fvPatchField<Foam::SymmTensor<Foam::scalar>>>
+Foam::fvPatchField<Foam::SymmTensor<Foam::scalar>>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::SymmTensor<Foam::scalar>, volMesh>& iF,
+    const dictionary& dict
+){
+    return tmp<fvPatchField<Foam::SymmTensor<Foam::scalar>>>(new processorFvPatchField<Foam::SymmTensor<Foam::scalar>>(p, iF, dict));
+}
+
+template<>
+Foam::tmp<Foam::fvPatchField<Foam::Tensor<Foam::scalar>>>
+Foam::fvPatchField<Foam::Tensor<Foam::scalar>>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::Tensor<Foam::scalar>, volMesh>& iF,
+    const dictionary& dict
+){
+    return tmp<fvPatchField<Foam::Tensor<Foam::scalar>>>(new processorFvPatchField<Foam::Tensor<Foam::scalar>>(p, iF, dict));
+}
+template<>
+Foam::tmp<Foam::fvPatchField<Foam::SphericalTensor<Foam::scalar>>>
+Foam::fvPatchField<Foam::SphericalTensor<Foam::scalar>>::NewProcessorType
+(
+    const fvPatch& p,
+    const DimensionedField<Foam::SphericalTensor<Foam::scalar>, volMesh>& iF,
+    const dictionary& dict
+){
+    return tmp<fvPatchField<Foam::SphericalTensor<Foam::scalar>>>(new processorFvPatchField<Foam::SphericalTensor<Foam::scalar>>(p, iF, dict));
+}
 // ************************************************************************* //

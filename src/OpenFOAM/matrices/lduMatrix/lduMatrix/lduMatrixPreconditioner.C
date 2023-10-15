@@ -24,6 +24,8 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "lduMatrix.H"
+#include "DICPreconditioner.H"
+#include "DILUPreconditioner.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -82,6 +84,16 @@ Foam::lduMatrix::preconditioner::New
 
     if (sol.matrix().symmetric())
     {
+        if(name == "DIC"){
+            return autoPtr<lduMatrix::preconditioner>(
+                new DICPreconditioner(
+                    sol,
+                    controls
+                )
+            );
+        }else{
+            Info << "Foam::lduMatrix::preconditioner::New symmetric name : " << name << endl;
+        }
         symMatrixConstructorTable::iterator constructorIter =
             symMatrixConstructorTablePtr_->find(name);
 
@@ -108,6 +120,16 @@ Foam::lduMatrix::preconditioner::New
     }
     else if (sol.matrix().asymmetric())
     {
+        if(name == "DILU"){
+            return autoPtr<lduMatrix::preconditioner>(
+                new DILUPreconditioner(
+                    sol,
+                    controls
+                )
+            );
+        }else{
+            Info << "Foam::lduMatrix::preconditioner::New asymmetric name : " << name << endl;
+        }
         asymMatrixConstructorTable::iterator constructorIter =
             asymMatrixConstructorTablePtr_->find(name);
 

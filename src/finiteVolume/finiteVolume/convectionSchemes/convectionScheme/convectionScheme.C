@@ -79,6 +79,12 @@ tmp<convectionScheme<Type>> convectionScheme<Type>::New
 
     const word schemeName(schemeData);
 
+    if(schemeName == "Gauss"){
+        return NewGauss(mesh, faceFlux, schemeData);
+    }else{
+        Info << "convectionScheme<Type>::New schemeName : " << schemeName << endl;
+    }
+
     typename IstreamConstructorTable::iterator cstrIter =
         IstreamConstructorTablePtr_->find(schemeName);
 
@@ -124,6 +130,11 @@ tmp<convectionScheme<Type>> convectionScheme<Type>::New
     }
 
     const word schemeName(schemeData);
+    if(schemeName == "Gauss"){
+        return NewMultivariateGauss(mesh, fields, faceFlux, schemeData);
+    }else{
+        Info << "convectionScheme<Type>::New 2 schemeName : " << schemeName << endl;
+    }
 
     typename MultivariateConstructorTable::iterator cstrIter =
         MultivariateConstructorTablePtr_->find(schemeName);

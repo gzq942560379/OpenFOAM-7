@@ -65,13 +65,13 @@ clean:
 $(WMAKE_BIN)/dirToString: dirToString.c
 	@mkdir -p $(WMAKE_BIN)
 	$(call QUIET_MESSAGE,compile,$<)
-	$E $(cc) $(cFLAGS) dirToString.c -o $(WMAKE_BIN)/dirToString
+	$E gcc dirToString.c -o $(WMAKE_BIN)/dirToString
 
 $(WMAKE_BIN)/wmkdep: wmkdep.l
 	@mkdir -p $(WMAKE_BIN)
 	$(call QUIET_MESSAGE,lex,$<)
 	$E flex wmkdep.l; \
-	$(cc) $(cFLAGS) lex.yy.c -o $(WMAKE_BIN)/wmkdep
+	gcc lex.yy.c -o $(WMAKE_BIN)/wmkdep
 	@rm -f lex.yy.c 2>/dev/null
 
 

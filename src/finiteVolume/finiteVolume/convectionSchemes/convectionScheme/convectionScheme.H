@@ -134,7 +134,21 @@ public:
             Istream& schemeData
         );
 
+        static tmp<convectionScheme<Type>> NewGauss
+        (
+            const fvMesh& mesh,
+            const surfaceScalarField& faceFlux,
+            Istream& schemeData
+        );
 
+        static tmp<convectionScheme<Type>> NewMultivariateGauss
+        (
+            const fvMesh& mesh,
+            const typename multivariateSurfaceInterpolationScheme<Type>::
+                fieldTable& fields,
+            const surfaceScalarField& faceFlux,
+            Istream& schemeData
+        );
         //- Return a pointer to a new multivariate convectionScheme
         //  created on freestore
         static tmp<convectionScheme<Type>> New

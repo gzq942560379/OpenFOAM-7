@@ -136,6 +136,65 @@ gaussConvectionScheme<Type>::fvcDiv
     return tConvection;
 }
 
+template<class Type>
+tmp<convectionScheme<Type>> convectionScheme<Type>::NewGauss
+(
+    const fvMesh& mesh,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<Type>>(new gaussConvectionScheme<Type>(mesh, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<scalar>> convectionScheme<scalar>::NewGauss
+(
+    const fvMesh& mesh,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<scalar>>(new gaussConvectionScheme<scalar>(mesh, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<Vector<scalar>>> convectionScheme<Vector<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<Vector<scalar>>>(new gaussConvectionScheme<Vector<scalar>>(mesh, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<Tensor<scalar>>> convectionScheme<Tensor<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<Tensor<scalar>>>(new gaussConvectionScheme<Tensor<scalar>>(mesh, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<SymmTensor<scalar>>> convectionScheme<SymmTensor<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<SymmTensor<scalar>>>(new gaussConvectionScheme<SymmTensor<scalar>>(mesh, faceFlux, schemeData));
+}
+
+template<>
+tmp<convectionScheme<SphericalTensor<scalar>>> convectionScheme<SphericalTensor<scalar>>::NewGauss
+(
+    const fvMesh& mesh,
+    const surfaceScalarField& faceFlux,
+    Istream& schemeData
+){
+    return tmp<convectionScheme<SphericalTensor<scalar>>>(new gaussConvectionScheme<SphericalTensor<scalar>>(mesh, faceFlux, schemeData));
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

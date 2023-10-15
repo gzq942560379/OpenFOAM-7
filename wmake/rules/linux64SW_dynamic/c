@@ -1,0 +1,24 @@
+#------------------------------------------------------------------------------
+# Fujitsu compiler - a clang variant
+SUFFIXES += .c
+
+cDBUG       =
+cOPT        = -O2
+cWARN       = -Wall $(FOAM_EXTRA_CFLAGS)
+
+cc          = mpicc
+
+cARCH       = -std=c11 -g -mftz -mieee -DvectorMachine
+
+# Compile option is non-mandatory, but must be non-empty
+sinclude $(DEFAULT_RULES)/c$(WM_COMPILE_OPTION)
+
+cFLAGS      = $(cARCH) $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) $(LIB_HEADER_DIRS) -mhost -fPIC 
+
+ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
+
+INK_LIBS   = $(cDBUG)
+
+LINKLIBSO   = $(cc) $(cARCH) -mdynamic -shared
+
+LINKEXE     = $(CC) $(c++ARCH) -mdynamic -Xlinker --add-needed -Wl,-rpath,$(FOAM_LIBBIN),-rpath,$(FOAM_LIBBIN)/$(FOAM_MPI),-rpath,$(SCOTCH_ARCH_PATH)/lib

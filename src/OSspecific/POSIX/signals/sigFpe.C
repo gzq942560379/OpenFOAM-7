@@ -57,17 +57,17 @@ extern "C"
     extern void* __libc_malloc(size_t size);
 
     // Override the GLIBC malloc to support mallocNan
-    void* malloc(size_t size)
-    {
-        if (Foam::sigFpe::mallocNanActive_)
-        {
-            return Foam::sigFpe::mallocNan(size);
-        }
-        else
-        {
-            return __libc_malloc(size);
-        }
-    }
+    // void* malloc(size_t size)
+    // {
+    //     if (Foam::sigFpe::mallocNanActive_)
+    //     {
+    //         return Foam::sigFpe::mallocNan(size);
+    //     }
+    //     else
+    //     {
+    //         return __libc_malloc(size);
+    //     }
+    // }
 }
 
 void* Foam::sigFpe::mallocNan(size_t size)

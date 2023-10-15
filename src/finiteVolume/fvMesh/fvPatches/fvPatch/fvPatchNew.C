@@ -24,6 +24,8 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "fvPatch.H"
+#include "wallFvPatch.H"
+#include "processorFvPatch.H"
 #include "HashTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -37,6 +39,13 @@ Foam::autoPtr<Foam::fvPatch> Foam::fvPatch::New
     if (debug)
     {
         InfoInFunction << "Constructing fvPatch" << endl;
+    }
+    if(patch.type() == "wall"){
+        return autoPtr<fvPatch>(new wallFvPatch(patch, bm));
+    }else if(patch.type() == "processor"){
+        return autoPtr<fvPatch>(new processorFvPatch(patch, bm));
+    }else{
+        Info << "Foam::fvPatch::New fvPatch : " << patch.type() << endl;
     }
 
     polyPatchConstructorTable::iterator cstrIter =

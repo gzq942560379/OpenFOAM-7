@@ -30,12 +30,13 @@ Note
 #include "UPstream.H"
 #include "PstreamReduceOps.H"
 #include "OSspecific.H"
+#include "clockTime.H"
 #include "PstreamGlobals.H"
 #include "SubList.H"
 #include "allReduce.H"
 
 #include <mpi.h>
-#include <omp.h>
+
 #include <iostream>
 
 #include <cstring>
@@ -71,7 +72,7 @@ bool Foam::UPstream::init(int& argc, char**& argv, const bool needsThread)
 {
     // MPI_Init(&argc, &argv);
     int provided_thread_support;
-    double mpi_init_start = omp_get_wtime();
+    clockTime clock;
     MPI_Init_thread
     (
         &argc,
@@ -83,8 +84,8 @@ bool Foam::UPstream::init(int& argc, char**& argv, const bool needsThread)
         ),
         &provided_thread_support
     );
-    double mpi_init_end = omp_get_wtime();
-    double mpi_init_time = mpi_init_end - mpi_init_start;
+    double mpi_init_time = clock.elapsedTime();
+
 
     // int numprocs;
     // MPI_Comm_size(MPI_COMM_WORLD, &numprocs);

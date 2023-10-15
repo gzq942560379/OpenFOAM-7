@@ -23,6 +23,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "wallPolyPatch.H"
+#include "processorPolyPatch.H"
 #include "polyPatch.H"
 #include "dictionary.H"
 
@@ -38,9 +40,26 @@ Foam::autoPtr<Foam::polyPatch> Foam::polyPatch::New
     const polyBoundaryMesh& bm
 )
 {
+    Info << "Foam::polyPatch::New 0" << endl;
     if (debug)
     {
         InfoInFunction << "Constructing polyPatch" << endl;
+    }
+    if(patchType == "wall"){
+        return autoPtr<polyPatch>
+        (
+            new wallPolyPatch
+            (
+                name,
+                size,
+                start,
+                index,
+                bm,
+                patchType
+            )
+        );
+    }else{
+        Info << "In Foam::polyPatch::New patchType : " << patchType << endl;
     }
 
     wordConstructorTable::iterator cstrIter =
@@ -103,6 +122,13 @@ Foam::autoPtr<Foam::polyPatch> Foam::polyPatch::New
     if (debug)
     {
         InfoInFunction << "Constructing polyPatch" << endl;
+    }
+    if(patchType == "wall"){
+        return autoPtr<polyPatch>(new wallPolyPatch(name, dict, index, bm, patchType));
+    }else if(patchType == "processor"){
+        return autoPtr<polyPatch>(new processorPolyPatch(name, dict, index, bm, patchType));
+    }else{
+        Info << "In Foam::polyPatch::New 2 patchType : " << patchType << endl;
     }
 
     dictionaryConstructorTable::iterator cstrIter =

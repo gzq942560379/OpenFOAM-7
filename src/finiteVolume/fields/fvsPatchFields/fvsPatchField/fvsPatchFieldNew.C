@@ -39,10 +39,16 @@ Foam::tmp<Foam::fvsPatchField<Type>> Foam::fvsPatchField<Type>::New
         InfoInFunction << "Constructing fvsPatchField<Type>" << endl;
     }
 
+    // if(patchFieldType == "processor"){
+    //     return NewProcessorType(p, iF);
+    // }else{
+    //     Info << "Foam::fvsPatchField<Type>::New patchFieldType : " << patchFieldType << endl;
+    // }
+
     typename patchConstructorTable::iterator cstrIter =
         patchConstructorTablePtr_->find(patchFieldType);
 
-    if (cstrIter == patchConstructorTablePtr_->end())
+    if (patchFieldType != "processor" && cstrIter == patchConstructorTablePtr_->end())
     {
         FatalErrorInFunction
             << "Unknown patchField type "
@@ -58,9 +64,14 @@ Foam::tmp<Foam::fvsPatchField<Type>> Foam::fvsPatchField<Type>::New
      || actualPatchType != p.type()
     )
     {
+        
+        if(p.type() == "processor"){
+            return NewProcessorType(p, iF);
+        }
+
         typename patchConstructorTable::iterator patchTypeCstrIter =
             patchConstructorTablePtr_->find(p.type());
-
+        
         if (patchTypeCstrIter != patchConstructorTablePtr_->end())
         {
             return patchTypeCstrIter()(p, iF);
