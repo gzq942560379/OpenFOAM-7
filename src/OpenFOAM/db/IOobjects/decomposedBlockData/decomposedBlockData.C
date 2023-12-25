@@ -35,6 +35,11 @@ License
 #include "SubList.H"
 #include "labelPair.H"
 #include "masterUncollatedFileOperation.H"
+#include "clockTime.H"
+#include <cassert>
+
+// #define decomposedBlockData_readBlock_naive
+#define decomposedBlockData_readBlock_indexing
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -216,6 +221,7 @@ void Foam::decomposedBlockData::writeHeader
     IOobject::writeDivider(os) << nl;
 }
 
+#ifdef decomposedBlockData_readBlock_naive
 
 Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlock
 (
@@ -224,6 +230,9 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlock
     IOobject& headerIO
 )
 {
+    // Info << "Foam::decomposedBlockData::readBlock name : " << is.name() << endl;
+    // Info << "Foam::decomposedBlockData::readBlock blocki : " << blocki << endl;
+    // clockTime clock;
     if (debug)
     {
         Pout<< "decomposedBlockData::readBlock:"
@@ -288,8 +297,129 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlock
         realIsPtr().format(fmt);
         realIsPtr().version(ver);
     }
+    Info << "Foam::decomposedBlockData::readBlock time : " << clock.elapsedTime() << endl;
     return realIsPtr;
 }
+
+#endif
+
+#ifdef decomposedBlockData_readBlock_indexing
+
+Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlock
+(
+    const label blocki,
+    Istream& is,
+    IOobject& headerIO
+)
+{
+    assert(UPstream::parRun() == false);
+
+    // Info << "Foam::decomposedBlockData::readBlock name : " << is.name() << endl;
+    // Info << "Foam::decomposedBlockData::readBlock blocki : " << blocki << endl;
+    // clockTime clock;
+    if (debug)
+    {
+        Pout<< "decomposedBlockData::readBlock:"
+            << " stream:" << is.name() << " attempt to read block " << blocki
+            << endl;
+    }
+
+    List<char> data;
+    autoPtr<ISstream> realIsPtr;
+
+    if (blocki == 0)
+    {
+        is >> data;
+        is.fatalCheck("read(Istream&) : reading entry");
+
+        string buf(data.begin(), data.size());
+        realIsPtr = new IStringStream(is.name(), buf);
+
+        // Read header
+        if (!headerIO.readHeader(realIsPtr()))
+        {
+            FatalIOErrorInFunction(realIsPtr())
+                << "problem while reading header for object "
+                << is.name() << exit(FatalIOError);
+        }
+    }
+    else
+    {
+        // Read master for header
+        is >> data;
+        is.fatalCheck("read(Istream&) : reading entry");
+
+        IOstream::versionNumber ver(IOstream::currentVersion);
+        IOstream::streamFormat fmt;
+        {
+            string buf(data.begin(), data.size());
+            IStringStream headerStream(is.name(), buf);
+
+            // Read header
+            if (!headerIO.readHeader(headerStream))
+            {
+                FatalIOErrorInFunction(headerStream)
+                    << "problem while reading header for object "
+                    << is.name() << exit(FatalIOError);
+            }
+            ver = headerStream.version();
+            fmt = headerStream.format();
+        }
+
+        // for (label i = 1; i < blocki+1; i++)
+        // {
+        //     // Read data, override old data
+        //     is >> data;
+        //     is.fatalCheck("read(Istream&) : reading entry");
+        // }
+
+        fileName file_name = is.name();
+        fileName index_file_name = file_name + ".index";
+
+        FILE* fin;
+        fin = fopen(index_file_name.c_str(), "r");
+        if(fin == NULL){
+            FatalIOErrorInFunction(is)
+                    << "index file open errorr !!! filename : "
+                    << is.name() << exit(FatalIOError); 
+        }
+        uint64_t index[2];
+        fseek(fin, blocki * sizeof(uint64_t), SEEK_SET);
+        fread(index, sizeof(uint64_t), 2, fin);
+        fclose(fin);
+
+        uint64_t start = index[0];
+        uint64_t end = index[1];
+        uint64_t len = end - start;
+
+        fin = fopen(file_name.c_str(), "r");
+        if(fin == NULL){
+            FatalIOErrorInFunction(is)
+                    << "file open errorr !!! filename : "
+                    << is.name() << exit(FatalIOError); 
+        }
+        fseek(fin, start, SEEK_SET);
+        char* buffer = new char[len];
+        fread(buffer, sizeof(char), len, fin);
+        fclose(fin);
+        string rowdata_buf(buffer, len);
+        IStringStream row_stream(rowdata_buf);
+        row_stream.format(is.format());
+        List<char> data;
+        row_stream >> data;
+
+        string buf(data.begin(), data.size());
+        realIsPtr = new IStringStream(is.name(), buf);
+
+        // Apply master stream settings to realIsPtr
+        realIsPtr().format(fmt);
+        realIsPtr().version(ver);
+    }
+    // Info << "Foam::decomposedBlockData::readBlock time : " << clock.elapsedTime() << endl;
+    return realIsPtr;
+}
+
+#endif
 
 
 bool Foam::decomposedBlockData::readBlocks

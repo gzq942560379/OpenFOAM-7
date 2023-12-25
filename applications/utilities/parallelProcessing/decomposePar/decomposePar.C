@@ -1263,11 +1263,11 @@ int main(int argc, char *argv[])
                     // multiple times, otherwise it is just extra storage.
                     if (times.size() == 1)
                     {
-                        boundaryProcAddressingList.set(proci, nullptr);
-                        cellProcAddressingList.set(proci, nullptr);
-                        faceProcAddressingList.set(proci, nullptr);
-                        procMeshList.set(proci, nullptr);
-                        processorDbList.set(proci, nullptr);
+                        boundaryProcAddressingList.set(proci, nullptr).clear();
+                        cellProcAddressingList.set(proci, nullptr).clear();
+                        faceProcAddressingList.set(proci, nullptr).clear();
+                        procMeshList.set(proci, nullptr).clear();
+                        processorDbList.set(proci, nullptr).clear();
                     }
                 }
             }
