@@ -30,19 +30,21 @@ else
 fi
 
 # Compile OpenFOAM libraries and applications
-wclean src/parallel/decompose/metisDecomp
-wclean src/parallel/decompose/scotchDecomp
-wclean src/parallel/decompose/ptscotchDecomp
-
-src/Allwmake $targetType $*
+# src/Allwmake $targetType $*
+wmake src/OpenFOAM
+wmake src/dynamicMesh
+wmake src/genericPatchFields
+wmake src/parallel/decompose/decompositionMethods
+src/lagrangian/Allwmake
 
 # Compile OpenFOAM libraries and applications
 # applications/Allwmake $targetType $*
 
-wclean applications/utilities/mesh/generation/blockMesh
-wclean applications/utilities/parallelProcessing/decomposePar
+# wclean applications/utilities/mesh/generation/blockMesh
+# wclean applications/utilities/parallelProcessing/decomposePar
 wmake applications/utilities/mesh/generation/blockMesh
 wmake applications/utilities/parallelProcessing/decomposePar
+wmake applications/utilities/parallelProcessing/decomposeParFieldParallel
 
 
 #------------------------------------------------------------------------------
