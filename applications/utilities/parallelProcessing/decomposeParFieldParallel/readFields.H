@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2018 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2018 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,74 +21,52 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Namespace
-    Foam::PstreamGlobals
+Global
+    readFields
 
 Description
-    Global functions and variables for working with parallel streams,
-    but principally for mpi
 
 SourceFiles
-    PstreamGlobals.C
+    readFields.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef PstreamGlobals_H
-#define PstreamGlobals_H
+#ifndef readFields_H
+#define readFields_H
 
-#include "DynamicList.H"
-
-#include <mpi.h>
-
-#if defined(WM_SP)
-    #define MPI_SCALAR MPI_FLOAT
-#elif defined(WM_DP)
-    #define MPI_SCALAR MPI_DOUBLE
-#elif defined(WM_LP)
-    #define MPI_SCALAR MPI_LONG_DOUBLE
-#endif
-
-#if WM_ARCH_OPTION == 32
-    #define MPI_LABEL MPI_INT
-#elif WM_ARCH_OPTION == 64
-    #define MPI_LABEL MPI_LONG
-#else
-    #error "WM_ARCH_OPTION must be 32 or 64"
-#endif
+#include "IOobjectList.H"
+#include "PtrList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+    // Read the fields and hold on the pointer list
+    template<class Type, template<class> class PatchField, class GeoMesh>
+    void readFields
+    (
+        const typename GeoMesh::Mesh& mesh,
+        const IOobjectList& objects,
+        PtrList<GeometricField<Type, PatchField, GeoMesh>>& fields,
+        const bool readOldTime
+    );
 
-/*---------------------------------------------------------------------------*\
-                           Class PstreamGlobals Declaration
-\*---------------------------------------------------------------------------*/
-
-namespace PstreamGlobals
-{
-    extern MPI_Comm MPI_COMM_FOAM;
-
-    extern MPI_Comm MPI_COMM_TWO_LEVEL;
-
-    extern DynamicList<MPI_Request> outstandingRequests_;
-
-    extern int nTags_;
-
-    extern DynamicList<int> freedTags_;
-
-    // Current communicators. First element will be MPI_COMM_FOAM
-    extern DynamicList<MPI_Comm> MPICommunicators_;
-
-    extern DynamicList<MPI_Group> MPIGroups_;
-
-    void checkCommunicator(const label, const label procNo);
-};
+    // Read the fields and hold on the pointer list
+    template<class Mesh, class GeoField>
+    void readFields
+    (
+        const Mesh& mesh,
+        const IOobjectList& objects,
+        PtrList<GeoField>& fields
+    );
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace Foam
+#ifdef NoRepository
+    #include "readFields.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

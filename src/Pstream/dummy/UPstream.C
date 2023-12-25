@@ -55,16 +55,6 @@ void Foam::UPstream::abort()
 }
 
 
-void Foam::reduce(scalar&, const sumOp<scalar>&, const int, const label)
-{}
-
-
-void Foam::reduce(scalar&, const minOp<scalar>&, const int, const label)
-{}
-
-
-void Foam::reduce(vector2D&, const sumOp<vector2D>&, const int, const label)
-{}
 
 
 void Foam::sumReduce
@@ -135,6 +125,14 @@ void Foam::UPstream::freePstreamCommunicator(const label)
 
 MPI_Comm Foam::UPstream::getPstreamCommunicator(const label communicator)
 {
+    return MPI_COMM_NULL;
+}
+
+MPI_Comm Foam::UPstream::getGlobalCommunicator(){
+    return MPI_COMM_NULL;
+}
+
+MPI_Comm Foam::UPstream::getTwoLevelCommunicator(){
     return MPI_COMM_NULL;
 }
 

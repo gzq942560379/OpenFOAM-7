@@ -37,6 +37,7 @@ Description
 #include "IPstream.H"
 #include "IOstreams.H"
 #include "contiguous.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -150,6 +151,7 @@ void Foam::Pstream::combineGather
     const label comm
 )
 {
+    syncClockTime clock;
     if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
     {
         combineGather
@@ -172,6 +174,7 @@ void Foam::Pstream::combineGather
             comm
         );
     }
+    Info << "Foam::Pstream::combineGather time : " << clock.elapsedTime() << endl;
 }
 
 
@@ -271,6 +274,7 @@ void Foam::Pstream::combineScatter
     const label comm
 )
 {
+    syncClockTime clock;
     if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
     {
         combineScatter(UPstream::linearCommunication(comm), Value, tag, comm);
@@ -279,6 +283,7 @@ void Foam::Pstream::combineScatter
     {
         combineScatter(UPstream::treeCommunication(comm), Value, tag, comm);
     }
+    Info << "Foam::Pstream::combineScatter time : " << clock.elapsedTime() << endl;
 }
 
 
@@ -399,6 +404,7 @@ void Foam::Pstream::listCombineGather
     const label comm
 )
 {
+    syncClockTime clock;
     if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
     {
         listCombineGather
@@ -421,6 +427,9 @@ void Foam::Pstream::listCombineGather
             comm
         );
     }
+    Info << "Foam::Pstream::listCombineGather T type : " << typeid(T).name() << endl;
+    Info << "Foam::Pstream::listCombineGather CombineOp type : " << typeid(CombineOp).name() << endl;
+    Info << "Foam::Pstream::listCombineGather time : " << clock.elapsedTime() << endl;
 }
 
 
@@ -520,6 +529,7 @@ void Foam::Pstream::listCombineScatter
     const label comm
 )
 {
+    syncClockTime clock;
     if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
     {
         listCombineScatter
@@ -540,6 +550,8 @@ void Foam::Pstream::listCombineScatter
             comm
         );
     }
+    Info << "Foam::Pstream::listCombineScatter T type : " << typeid(T).name() << endl;
+    Info << "Foam::Pstream::listCombineScatter time : " << clock.elapsedTime() << endl;
 }
 
 
@@ -633,6 +645,7 @@ void Foam::Pstream::mapCombineGather
     const label comm
 )
 {
+    syncClockTime clock;
     if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
     {
         mapCombineGather
@@ -655,6 +668,7 @@ void Foam::Pstream::mapCombineGather
             comm
         );
     }
+    Info << "Foam::Pstream::mapCombineGather time : " << clock.elapsedTime() << endl;
 }
 
 
@@ -724,6 +738,7 @@ void Foam::Pstream::mapCombineScatter
     const label comm
 )
 {
+    syncClockTime clock;
     if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
     {
         mapCombineScatter
@@ -744,6 +759,7 @@ void Foam::Pstream::mapCombineScatter
             comm
         );
     }
+    Info << "Foam::Pstream::mapCombineScatter time : " << clock.elapsedTime() << endl;
 }
 
 

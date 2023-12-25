@@ -292,8 +292,43 @@ Foam::polyMesh::polyMesh(const IOobject& io)
     curMotionTimeIndex_(-1),
     oldPointsPtr_(nullptr),
     oldCellCentresPtr_(nullptr),
-    storeOldCellCentres_(false)
+    storeOldCellCentres_(false),
+    polyMesh_clock_(),
+    polyMesh_1_(polyMesh_clock_.timeIncrement()),
+    polyMesh_2_(polyMesh_clock_.timeIncrement()),
+    polyMesh_3_(polyMesh_clock_.timeIncrement()),
+    polyMesh_4_(polyMesh_clock_.timeIncrement()),
+    polyMesh_5_(polyMesh_clock_.timeIncrement()),
+    polyMesh_6_(polyMesh_clock_.timeIncrement()),
+    polyMesh_7_(polyMesh_clock_.timeIncrement()),
+    polyMesh_8_(polyMesh_clock_.timeIncrement()),
+    polyMesh_9_(polyMesh_clock_.timeIncrement()),
+    polyMesh_10_(polyMesh_clock_.timeIncrement()),
+    polyMesh_11_(polyMesh_clock_.timeIncrement()),
+    polyMesh_12_(polyMesh_clock_.timeIncrement()),
+    polyMesh_13_(polyMesh_clock_.timeIncrement()),
+    polyMesh_14_(polyMesh_clock_.timeIncrement()),
+    polyMesh_15_(polyMesh_clock_.timeIncrement()),
+    polyMesh_16_(polyMesh_clock_.timeIncrement())
 {
+    Info << "Foam::polyMesh::polyMesh time -1 : " << polyMesh_1_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -2 : " << polyMesh_2_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -3 : " << polyMesh_3_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -4 : " << polyMesh_4_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -5 : " << polyMesh_5_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -6 : " << polyMesh_6_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -7 : " << polyMesh_7_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -8 : " << polyMesh_8_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -9 : " << polyMesh_9_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -9 : " << polyMesh_9_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -10 : " << polyMesh_10_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -11 : " << polyMesh_11_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -12 : " << polyMesh_12_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -13 : " << polyMesh_13_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -14 : " << polyMesh_14_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -15 : " << polyMesh_15_ << endl;
+    Info << "Foam::polyMesh::polyMesh time -16 : " << polyMesh_16_ << endl;
+    syncClockTime clock;
     if (!owner_.headerClassName().empty())
     {
         initMesh();
@@ -319,12 +354,15 @@ Foam::polyMesh::polyMesh(const IOobject& io)
         owner_.write();
         neighbour_.write();
     }
+    Info << "Foam::polyMesh::polyMesh time 0 : " << clock.timeIncrement() << endl;
 
     // Calculate topology for the patches (processor-processor comms etc.)
     boundary_.updateMesh();
+    Info << "Foam::polyMesh::polyMesh time 1 : " << clock.timeIncrement() << endl;
 
     // Calculate the geometry for the patches (transformation tensors etc.)
     boundary_.calcGeometry();
+    Info << "Foam::polyMesh::polyMesh time 2 : " << clock.timeIncrement() << endl;
 
     // Warn if global empty mesh
     if (returnReduce(nPoints(), sumOp<label>()) == 0)
@@ -332,14 +370,18 @@ Foam::polyMesh::polyMesh(const IOobject& io)
         WarningInFunction
             << "no points in mesh" << endl;
     }
+    Info << "Foam::polyMesh::polyMesh time 3 : " << clock.timeIncrement() << endl;
+
     if (returnReduce(nCells(), sumOp<label>()) == 0)
     {
         WarningInFunction
             << "no cells in mesh" << endl;
+    Info << "Foam::polyMesh::polyMesh time 4 : " << clock.timeIncrement() << endl;
     }
 
     // Initialise demand-driven data
     calcDirections();
+    Info << "Foam::polyMesh::polyMesh time 5 : " << clock.timeIncrement() << endl;
 }
 
 

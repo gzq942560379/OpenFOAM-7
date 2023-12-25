@@ -30,6 +30,10 @@ Description
 #include "contiguous.H"
 #include "PstreamCombineReduceOps.H"
 #include "UPstream.H"
+#include "clockTime.H"
+#include "labelList.H"
+#include "DynamicList.H"
+#include <typeinfo>
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -131,7 +135,6 @@ void Foam::Pstream::exchange
     recvBufs[Pstream::myProcNo(comm)] = sendBufs[Pstream::myProcNo(comm)];
 }
 
-
 template<class Container>
 void Foam::Pstream::exchangeSizes
 (
@@ -169,10 +172,16 @@ void Foam::Pstream::exchange
     const bool block
 )
 {
+    syncClockTime clock;
     labelList recvSizes;
     exchangeSizes(sendBufs, recvSizes, comm);
+    Info << "Foam::Pstream::exchange time 0 : " << clock.timeIncrement() << endl;
 
     exchange<Container, T>(sendBufs, recvSizes, recvBufs, tag, comm, block);
+    Info << "Foam::Pstream::exchange time 1 : " << clock.timeIncrement() << endl;
+    Info << "Foam::Pstream::exchange Container Type : " << typeid(Container).name() << endl;
+    Info << "Foam::Pstream::exchange T Type : " << typeid(T).name() << endl;
+    Info << "Foam::Pstream::exchange time : " << clock.elapsedTime() << endl;
 }
 
 

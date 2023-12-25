@@ -36,6 +36,17 @@ License
 #include "labelPair.H"
 #include "masterUncollatedFileOperation.H"
 #include <mpi.h>
+#include "clockTime.H"
+#include <fstream>
+#include <cstdlib>
+#include <cstdio>
+
+// #define decomposedBlockData_NAIVE
+// #define decomposedBlockData_SCATTERV
+// #define decomposedBlockData_PARALLEL_IO
+// #define decomposedBlockData_PARALLEL_IO_CFILE
+// #define decomposedBlockData_PARALLEL_IO_MPI
+#define decomposedBlockData_PARALLEL_IO_TWOLEVEL
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -413,6 +424,8 @@ bool Foam::decomposedBlockData::readBlocks
 }
 
 
+#ifdef decomposedBlockData_NAIVE
+
 Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
 (
     const label comm,
@@ -422,6 +435,7 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
     const UPstream::commsTypes commsType
 )
 {
+    syncClockTime clock;
     if (debug)
     {
         Pout<< "decomposedBlockData::readBlocks:"
@@ -430,139 +444,202 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
     }
     bool ok = false;
 
+    // Index
+    MPI_Comm mpi_comm = UPstream::getGlobalCommunicator();
+    int mpisize = UPstream::nProcs(comm);
+    int mpirank = UPstream::myProcNo(comm);
+
     List<char> data;
     autoPtr<ISstream> realIsPtr;
 
-    // if (commsType == UPstream::commsTypes::scheduled)
-    // {
-    //     if (UPstream::master(comm))
-    //     {
-    //         Istream& is = isPtr();
-    //         is.fatalCheck("read(Istream&)");
-
-    //         // Read master data
-    //         {
-    //             is >> data;
-    //             is.fatalCheck("read(Istream&) : reading entry");
-
-    //             string buf(data.begin(), data.size());
-    //             realIsPtr = new IStringStream(fName, buf);
-
-    //             // Read header
-    //             if (!headerIO.readHeader(realIsPtr()))
-    //             {
-    //                 FatalIOErrorInFunction(realIsPtr())
-    //                     << "problem while reading header for object "
-    //                     << is.name() << exit(FatalIOError);
-    //             }
-    //         }
-
-    //         // Read slave data
-    //         for
-    //         (
-    //             label proci = 1;
-    //             proci < UPstream::nProcs(comm);
-    //             proci++
-    //         )
-    //         {
-    //             is >> data;
-    //             is.fatalCheck("read(Istream&) : reading entry");
-
-    //             OPstream os
-    //             (
-    //                 UPstream::commsTypes::scheduled,
-    //                 proci,
-    //                 0,
-    //                 UPstream::msgType(),
-    //                 comm
-    //             );
-    //             os << data;
-    //         }
-
-    //         ok = is.good();
-    //     }
-    //     else
-    //     {
-    //         IPstream is
-    //         (
-    //             UPstream::commsTypes::scheduled,
-    //             UPstream::masterNo(),
-    //             0,
-    //             UPstream::msgType(),
-    //             comm
-    //         );
-    //         is >> data;
-
-    //         string buf(data.begin(), data.size());
-    //         realIsPtr = new IStringStream(fName, buf);
-    //     }
-    // }
-    // else
-    // {
-    //     Info << "commsType != UPstream::commsTypes::scheduled" << endl;
-
-    //     PstreamBuffers pBufs
-    //     (
-    //         UPstream::commsTypes::nonBlocking,
-    //         UPstream::msgType(),
-    //         comm
-    //     );
-
-    //     if (UPstream::master(comm))
-    //     {
-    //         Istream& is = isPtr();
-    //         is.fatalCheck("read(Istream&)");
-
-    //         // Read master data
-    //         {
-    //             is >> data;
-    //             is.fatalCheck("read(Istream&) : reading entry");
-
-    //             string buf(data.begin(), data.size());
-    //             realIsPtr = new IStringStream(fName, buf);
-
-    //             // Read header
-    //             if (!headerIO.readHeader(realIsPtr()))
-    //             {
-    //                 FatalIOErrorInFunction(realIsPtr())
-    //                     << "problem while reading header for object "
-    //                     << is.name() << exit(FatalIOError);
-    //             }
-    //         }
-
-    //         // Read slave data
-    //         for
-    //         (
-    //             label proci = 1;
-    //             proci < UPstream::nProcs(comm);
-    //             proci++
-    //         )
-    //         {
-    //             List<char> elems(is);
-    //             is.fatalCheck("read(Istream&) : reading entry");
-
-    //             UOPstream os(proci, pBufs);
-    //             os << elems;
-    //         }
-
-    //         ok = is.good();
-    //     }
-
-    //     labelList recvSizes;
-    //     pBufs.finishedSends(recvSizes);
-
-    //     if (!UPstream::master(comm))
-    //     {
-    //         UIPstream is(UPstream::masterNo(), pBufs);
-    //         is >> data;
-
-    //         string buf(data.begin(), data.size());
-    //         realIsPtr = new IStringStream(fName, buf);
-    //     }
-
-    // }
-
+    if (commsType == UPstream::commsTypes::scheduled)
     {
+        if (UPstream::master(comm))
+        {
+            Istream& is = isPtr();
+            is.fatalCheck("read(Istream&)");
+
+            // Read master data
+            {
+                is >> data;
+                is.fatalCheck("read(Istream&) : reading entry");
+
+                string buf(data.begin(), data.size());
+                realIsPtr = new IStringStream(fName, buf);
+
+                // Read header
+                if (!headerIO.readHeader(realIsPtr()))
+                {
+                    FatalIOErrorInFunction(realIsPtr())
+                        << "problem while reading header for object "
+                        << is.name() << exit(FatalIOError);
+                }
+            }
+
+            // Read slave data
+            for
+            (
+                label proci = 1;
+                proci < mpisize;
+                proci++
+            )
+            {
+                is >> data;
+                is.fatalCheck("read(Istream&) : reading entry");
+
+                OPstream os
+                (
+                    UPstream::commsTypes::scheduled,
+                    proci,
+                    0,
+                    UPstream::msgType(),
+                    comm
+                );
+                os << data;
+            }
+
+            ok = is.good();
+        }
+        else
+        {
+            IPstream is
+            (
+                UPstream::commsTypes::scheduled,
+                UPstream::masterNo(),
+                0,
+                UPstream::msgType(),
+                comm
+            );
+            is >> data;
+
+            string buf(data.begin(), data.size());
+            realIsPtr = new IStringStream(fName, buf);
+        }
+    }
+    else
+    {
+        PstreamBuffers pBufs
+        (
+            UPstream::commsTypes::nonBlocking,
+            UPstream::msgType(),
+            comm
+        );
+
+        if (UPstream::master(comm))
+        {
+            Istream& is = isPtr();
+            is.fatalCheck("read(Istream&)");
+
+            // Read master data
+            {
+                is >> data;
+                is.fatalCheck("read(Istream&) : reading entry");
+
+                string buf(data.begin(), data.size());
+                realIsPtr = new IStringStream(fName, buf);
+
+                // Read header
+                if (!headerIO.readHeader(realIsPtr()))
+                {
+                    FatalIOErrorInFunction(realIsPtr())
+                        << "problem while reading header for object "
+                        << is.name() << exit(FatalIOError);
+                }
+            }
+
+            // Read slave data
+            for
+            (
+                label proci = 1;
+                proci < mpisize;
+                proci++
+            )
+            {
+                List<char> elems(is);
+                is.fatalCheck("read(Istream&) : reading entry");
+
+                UOPstream os(proci, pBufs);
+                os << elems;
+            }
+
+            ok = is.good();
+        }
+
+        labelList recvSizes;
+        pBufs.finishedSends(recvSizes);
+
+        if (!UPstream::master(comm))
+        {
+            UIPstream is(UPstream::masterNo(), pBufs);
+            is >> data;
+
+            string buf(data.begin(), data.size());
+            realIsPtr = new IStringStream(fName, buf);
+        }
+
+    }
+
+    Info << "Foam::decomposedBlockData::readBlocks time 0 read and isendrecv : " << clock.timeIncrement() << endl;
+    Pstream::scatter(ok, Pstream::msgType(), comm);
+
+    // version
+    string versionString(realIsPtr().version().str());
+    Pstream::scatter(versionString,  Pstream::msgType(), comm);
+    realIsPtr().version(IStringStream(versionString)());
+
+    // stream
+    OStringStream os;
+    os << realIsPtr().format();
+    string formatString(os.str());
+    Pstream::scatter(formatString,  Pstream::msgType(), comm);
+    realIsPtr().format(formatString);
+
+    word name(headerIO.name());
+    Pstream::scatter(name, Pstream::msgType(), comm);
+    headerIO.rename(name);
+    Pstream::scatter(headerIO.headerClassName(), Pstream::msgType(), comm);
+    Pstream::scatter(headerIO.note(), Pstream::msgType(), comm);
+    Info << "Foam::decomposedBlockData::readBlocks time 1 other : " << clock.timeIncrement() << endl;
+
+    // Pstream::scatter(headerIO.instance(), Pstream::msgType(), comm);
+    // Pstream::scatter(headerIO.local(), Pstream::msgType(), comm);
+
+    Info << "Foam::decomposedBlockData::readBlocks time : " << clock.elapsedTime() << endl;
+    return realIsPtr;
+}
+
+#endif
+
+#ifdef decomposedBlockData_SCATTERV
+Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
+(
+    const label comm,
+    const fileName& fName,
+    autoPtr<ISstream>& isPtr,
+    IOobject& headerIO,
+    const UPstream::commsTypes commsType
+)
+{
+    syncClockTime clock;
+
+    if (debug)
+    {
+        Pout<< "decomposedBlockData::readBlocks:"
+            << " stream:" << (isPtr.valid() ? isPtr().name() : "invalid")
+            << " commsType:" << Pstream::commsTypeNames[commsType] << endl;
+    }
+    bool ok = false;
+
+    // Index
+    MPI_Comm mpi_comm = UPstream::getGlobalCommunicator();
+    int mpisize = UPstream::nProcs(comm);
+    int mpirank = UPstream::myProcNo(comm);
+
+
+    // master read and scatterv scatter -------------------------------------------------------
+    autoPtr<ISstream> realIsPtr;
+    {
+        List<char> data;
         off_t fileSize = fileHandler().fileSize(fName);
 
         char* send_buffer;
@@ -574,8 +651,8 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
         if (UPstream::master(comm))
         {
             send_buffer = new char[fileSize];
-            sendcounts = new int[UPstream::nProcs(comm)];
-            displs = new int[UPstream::nProcs(comm)];
+            sendcounts = new int[mpisize];
+            displs = new int[mpisize];
 
             Istream& is = isPtr();
             is.fatalCheck("read(Istream&)");
@@ -590,6 +667,9 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
                 total_size += 0;
 
                 string buf(data.begin(), data.size());
+                
+                // Info << "buf : " << buf << endl;
+                
                 realIsPtr = new IStringStream(fName, buf);
 
                 // Read header
@@ -605,7 +685,7 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
             for
             (
                 label proci = 1;
-                proci < UPstream::nProcs(comm);
+                proci < mpisize;
                 proci++
             )
             {
@@ -625,17 +705,21 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
             displs = nullptr;
         }
 
+        Info << "Foam::decomposedBlockData::readBlocks time 0 read data : " << clock.timeIncrement() << endl;
+
         int recvcount;
         MPI_Scatter(sendcounts, 1, MPI_INT,
             &recvcount, 1, MPI_INT,
-            UPstream::masterNo(), UPstream::getPstreamCommunicator(comm));
+            UPstream::masterNo(), mpi_comm);
 
+        Info << "Foam::decomposedBlockData::readBlocks time 1 scatter sendcount : " << clock.timeIncrement() << endl;
 
         recv_buffer = new char[recvcount];
         MPI_Scatterv(send_buffer, sendcounts, displs, MPI_CHAR,
             recv_buffer, recvcount, MPI_CHAR,
-            UPstream::masterNo(), UPstream::getPstreamCommunicator(comm));
+            UPstream::masterNo(), mpi_comm);
 
+        Info << "Foam::decomposedBlockData::readBlocks time 2 scatterv data : " << clock.timeIncrement() << endl;
 
         if (!UPstream::master(comm))
         {
@@ -661,28 +745,659 @@ Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
     realIsPtr().version(IStringStream(versionString)());
 
     // stream
-    {
-        OStringStream os;
-        os << realIsPtr().format();
-        string formatString(os.str());
-        Pstream::scatter(formatString,  Pstream::msgType(), comm);
-        realIsPtr().format(formatString);
-    }
-
+    OStringStream os;
+    os << realIsPtr().format();
+    string formatString(os.str());
+    Pstream::scatter(formatString,  Pstream::msgType(), comm);
+    realIsPtr().format(formatString);
 
     word name(headerIO.name());
     Pstream::scatter(name, Pstream::msgType(), comm);
     headerIO.rename(name);
     Pstream::scatter(headerIO.headerClassName(), Pstream::msgType(), comm);
     Pstream::scatter(headerIO.note(), Pstream::msgType(), comm);
-
+    Info << "Foam::decomposedBlockData::readBlocks time 3 other : " << clock.timeIncrement() << endl;
 
     // Pstream::scatter(headerIO.instance(), Pstream::msgType(), comm);
     // Pstream::scatter(headerIO.local(), Pstream::msgType(), comm);
 
+    Info << "Foam::decomposedBlockData::readBlocks time : " << clock.elapsedTime() << endl;
     return realIsPtr;
 }
 
+#endif
+
+#ifdef decomposedBlockData_PARALLEL_IO
+
+Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
+(
+    const label comm,
+    const fileName& fName,
+    autoPtr<ISstream>& isPtr,
+    IOobject& headerIO,
+    const UPstream::commsTypes commsType
+)
+{
+    syncClockTime clock;
+
+    if (debug)
+    {
+        Pout<< "decomposedBlockData::readBlocks:"
+            << " stream:" << (isPtr.valid() ? isPtr().name() : "invalid")
+            << " commsType:" << Pstream::commsTypeNames[commsType] << endl;
+    }
+
+    MPI_Comm mpi_comm = UPstream::getGlobalCommunicator();
+    int mpisize = UPstream::nProcs(comm);
+    int mpirank = UPstream::myProcNo(comm);
+
+    // parallel io ----------------------------------------
+    fileName file_name;
+    if (UPstream::master(comm)){
+        file_name = isPtr().name();
+    } 
+
+    Pstream::scatter(file_name, Pstream::msgType(), comm);
+
+    fileName index_file_name = file_name + ".index";
+
+    string is_format_string;
+    if(UPstream::master(comm)){
+        OStringStream format_oss;
+        format_oss << isPtr().format();
+        is_format_string = format_oss.str();
+    }
+    Pstream::scatter(is_format_string,  Pstream::msgType(), comm);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 0 other : " << clock.timeIncrement() << endl;
+    std::ifstream fin;
+
+    fin.open(index_file_name, std::ios::binary);
+    if(!fin.is_open()){
+        Pout << "In line " << __LINE__ << " : file open errorr !!! in rank " << mpirank << endl;
+        MPI_Abort(mpi_comm, -1);
+    }
+
+    Info << "Foam::decomposedBlockData::readBlocks time 1 open index file : " << clock.timeIncrement() << endl;
+    uint64_t index[2];
+
+    fin.seekg(mpirank * sizeof(uint64_t));
+    Info << "Foam::decomposedBlockData::readBlocks time 2 seek index file : " << clock.timeIncrement() << endl;
+
+    fin.read(reinterpret_cast<char*>(index), 2 * sizeof(uint64_t));
+    Info << "Foam::decomposedBlockData::readBlocks time 3 read index file : " << clock.timeIncrement() << endl;
+
+    fin.close();
+    Info << "Foam::decomposedBlockData::readBlocks time 4 close index file : " << clock.timeIncrement() << endl;
+
+    fin.open(file_name, std::ios::binary);
+
+    if(!fin.is_open()){
+        Pout << "In line " << __LINE__ << " : file open errorr !!! in rank " << mpirank << endl;
+        MPI_Abort(mpi_comm, -1);
+    }
+    Info << "Foam::decomposedBlockData::readBlocks time 5 open data file : " << clock.timeIncrement() << endl;
+
+    autoPtr<ISstream> realIsPtr;
+    uint64_t start = index[0];
+    uint64_t end = index[1];
+    uint64_t len = end - start;
+
+    char* buffer = new char[len];
+
+    // read data
+    fin.seekg(start);
+    Info << "Foam::decomposedBlockData::readBlocks time 6 seek data file : " << clock.timeIncrement() << endl;
+    fin.read(buffer, len * sizeof(char));
+    Info << "Foam::decomposedBlockData::readBlocks time 7 read data file : " << clock.timeIncrement() << endl;
+
+    fin.close();
+    Info << "Foam::decomposedBlockData::readBlocks time 8 close data file : " << clock.timeIncrement() << endl;
+
+    string rowdata_buf(buffer, len);
+    IStringStream row_stream(rowdata_buf);
+    row_stream.format(is_format_string);
+
+    List<char> data;
+    row_stream >> data;
+
+    string buf(data.begin(), data.size());
+    realIsPtr = new IStringStream(fName, buf);
+
+    if(UPstream::master(comm)){
+        if(!headerIO.readHeader(realIsPtr()))
+        {
+            FatalIOErrorInFunction(realIsPtr())
+                << "problem while reading header for object "
+                << isPtr().name() << exit(FatalIOError);
+        }
+    }
+  
+    delete [] buffer;
+
+    // ---------------------------------------------------------------------------------
+
+    // version
+    string versionString(realIsPtr().version().str());
+    Pstream::scatter(versionString,  Pstream::msgType(), comm);
+    realIsPtr().version(IStringStream(versionString)());
+
+    // stream
+    OStringStream os;
+    os << realIsPtr().format();
+    string formatString(os.str());
+    Pstream::scatter(formatString,  Pstream::msgType(), comm);
+    realIsPtr().format(formatString);
+
+    word name(headerIO.name());
+    Pstream::scatter(name, Pstream::msgType(), comm);
+    headerIO.rename(name);
+    Pstream::scatter(headerIO.headerClassName(), Pstream::msgType(), comm);
+    Pstream::scatter(headerIO.note(), Pstream::msgType(), comm);
+    Info << "Foam::decomposedBlockData::readBlocks time 9 other : " << clock.timeIncrement() << endl;
+
+    // Pstream::scatter(headerIO.instance(), Pstream::msgType(), comm);
+    // Pstream::scatter(headerIO.local(), Pstream::msgType(), comm);
+
+    Info << "Foam::decomposedBlockData::readBlocks time : " << clock.elapsedTime() << endl;
+    return realIsPtr;
+}
+
+#endif
+
+
+#ifdef decomposedBlockData_PARALLEL_IO_CFILE
+
+Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
+(
+    const label comm,
+    const fileName& fName,
+    autoPtr<ISstream>& isPtr,
+    IOobject& headerIO,
+    const UPstream::commsTypes commsType
+)
+{
+    syncClockTime clock;
+
+    if (debug)
+    {
+        Pout<< "decomposedBlockData::readBlocks:"
+            << " stream:" << (isPtr.valid() ? isPtr().name() : "invalid")
+            << " commsType:" << Pstream::commsTypeNames[commsType] << endl;
+    }
+
+    MPI_Comm mpi_comm = UPstream::getGlobalCommunicator();
+    int mpisize = UPstream::nProcs(comm);
+    int mpirank = UPstream::myProcNo(comm);
+
+    // parallel io ----------------------------------------
+    fileName file_name;
+    if (UPstream::master(comm)){
+        file_name = isPtr().name();
+    } 
+    
+    Pstream::scatter(file_name, Pstream::msgType(), comm);
+
+    fileName index_file_name = file_name + ".index";
+
+    string is_format_string;
+    if(UPstream::master(comm)){
+        OStringStream format_oss;
+        format_oss << isPtr().format();
+        is_format_string = format_oss.str();
+    }
+    Pstream::scatter(is_format_string,  Pstream::msgType(), comm);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 0 other : " << clock.timeIncrement() << endl;
+    
+    FILE* fin;
+    fin = fopen(index_file_name.c_str(), "r");
+    if(fin == NULL){
+        Pout << "In line " << __LINE__ << " : file open errorr !!! in rank " << mpirank << endl;
+        MPI_Abort(mpi_comm, -1);   
+    }
+
+    Info << "Foam::decomposedBlockData::readBlocks time 1 open index file : " << clock.timeIncrement() << endl;
+    uint64_t index[2];
+    fseek(fin, mpirank * sizeof(uint64_t), SEEK_SET);
+    
+    Info << "Foam::decomposedBlockData::readBlocks time 2 seek index file : " << clock.timeIncrement() << endl;
+
+    fread(index, sizeof(uint64_t), 2, fin);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 3 read index file : " << clock.timeIncrement() << endl;
+
+    fclose(fin);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 4 close index file : " << clock.timeIncrement() << endl;
+
+    fin = fopen(file_name.c_str(), "r");
+    if(fin == NULL){
+        Pout << "In line " << __LINE__ << " : file open errorr !!! in rank " << mpirank << endl;
+        MPI_Abort(mpi_comm, -1);
+    }
+
+    Info << "Foam::decomposedBlockData::readBlocks time 5 open data file : " << clock.timeIncrement() << endl;
+
+    autoPtr<ISstream> realIsPtr;
+    uint64_t start = index[0];
+    uint64_t end = index[1];
+    uint64_t len = end - start;
+
+    char* buffer = new char[len];
+
+    fseek(fin, start, SEEK_SET);
+    Info << "Foam::decomposedBlockData::readBlocks time 6 seek data file : " << clock.timeIncrement() << endl;
+    
+    fread(buffer, sizeof(char), len, fin);
+    
+    Info << "Foam::decomposedBlockData::readBlocks time 7 read data file : " << clock.timeIncrement() << endl;
+
+    fclose(fin);
+    Info << "Foam::decomposedBlockData::readBlocks time 8 close data file : " << clock.timeIncrement() << endl;
+
+    string rowdata_buf(buffer, len);
+    IStringStream row_stream(rowdata_buf);
+    row_stream.format(is_format_string);
+
+    List<char> data;
+    row_stream >> data;
+
+    string buf(data.begin(), data.size());
+    realIsPtr = new IStringStream(fName, buf);
+
+    if(UPstream::master(comm)){
+        if(!headerIO.readHeader(realIsPtr()))
+        {
+            FatalIOErrorInFunction(realIsPtr())
+                << "problem while reading header for object "
+                << isPtr().name() << exit(FatalIOError);
+        }
+    }
+  
+    delete [] buffer;
+
+    // ---------------------------------------------------------------------------------
+
+    // version
+    string versionString(realIsPtr().version().str());
+    Pstream::scatter(versionString,  Pstream::msgType(), comm);
+    realIsPtr().version(IStringStream(versionString)());
+
+    // stream
+    OStringStream os;
+    os << realIsPtr().format();
+    string formatString(os.str());
+    Pstream::scatter(formatString,  Pstream::msgType(), comm);
+    realIsPtr().format(formatString);
+
+    word name(headerIO.name());
+    Pstream::scatter(name, Pstream::msgType(), comm);
+    headerIO.rename(name);
+    Pstream::scatter(headerIO.headerClassName(), Pstream::msgType(), comm);
+    Pstream::scatter(headerIO.note(), Pstream::msgType(), comm);
+    Info << "Foam::decomposedBlockData::readBlocks time 9 other : " << clock.timeIncrement() << endl;
+
+    // Pstream::scatter(headerIO.instance(), Pstream::msgType(), comm);
+    // Pstream::scatter(headerIO.local(), Pstream::msgType(), comm);
+
+    Info << "Foam::decomposedBlockData::readBlocks time : " << clock.elapsedTime() << endl;
+    return realIsPtr;
+}
+
+#endif
+
+#ifdef decomposedBlockData_PARALLEL_IO_MPI
+
+Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
+(
+    const label comm,
+    const fileName& fName,
+    autoPtr<ISstream>& isPtr,
+    IOobject& headerIO,
+    const UPstream::commsTypes commsType
+)
+{
+    syncClockTime clock;
+
+    if (debug)
+    {
+        Pout<< "decomposedBlockData::readBlocks:"
+            << " stream:" << (isPtr.valid() ? isPtr().name() : "invalid")
+            << " commsType:" << Pstream::commsTypeNames[commsType] << endl;
+    }
+
+    MPI_Comm mpi_comm = UPstream::getGlobalCommunicator();
+    int mpisize = UPstream::nProcs(comm);
+    int mpirank = UPstream::myProcNo(comm);
+
+    // parallel io ----------------------------------------
+    fileName file_name;
+    if (UPstream::master(comm)){
+        file_name = isPtr().name();
+    } 
+    
+    Pstream::scatter(file_name, Pstream::msgType(), comm);
+
+    fileName index_file_name = file_name + ".index";
+
+    string is_format_string;
+    if(UPstream::master(comm)){
+        OStringStream format_oss;
+        format_oss << isPtr().format();
+        is_format_string = format_oss.str();
+    }
+    Pstream::scatter(is_format_string,  Pstream::msgType(), comm);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 0 other : " << clock.timeIncrement() << endl;
+    
+    MPI_Status status;
+    int error;
+    int amode = MPI_MODE_RDONLY | MPI_MODE_UNIQUE_OPEN;
+
+    MPI_File fin;
+
+    error = MPI_File_open(mpi_comm, index_file_name.c_str(), amode, MPI_INFO_NULL, &fin);
+    
+    if(error != MPI_SUCCESS){
+        Pout << "In line " << __LINE__ << " : file open errorr !!! in rank " << mpirank << endl;
+        MPI_Abort(mpi_comm, -1);   
+    }
+
+    Info << "Foam::decomposedBlockData::readBlocks time 1 open index file : " << clock.timeIncrement() << endl;
+    uint64_t index[2];
+
+    MPI_File_seek(fin, mpirank * sizeof(uint64_t), MPI_SEEK_SET);
+    
+    Info << "Foam::decomposedBlockData::readBlocks time 2 seek index file : " << clock.timeIncrement() << endl;
+
+    MPI_File_read(fin, index, 2, MPI_UINT64_T, &status);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 3 read index file : " << clock.timeIncrement() << endl;
+
+    MPI_File_close(&fin);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 4 close index file : " << clock.timeIncrement() << endl;
+
+    error = MPI_File_open(mpi_comm, file_name.c_str(), amode, MPI_INFO_NULL, &fin);
+    if(error != MPI_SUCCESS){
+        Pout << "In line " << __LINE__ << " : file open errorr !!! in rank " << mpirank << endl;
+        MPI_Abort(mpi_comm, -1);
+    }
+
+    Info << "Foam::decomposedBlockData::readBlocks time 5 open data file : " << clock.timeIncrement() << endl;
+
+    autoPtr<ISstream> realIsPtr;
+    uint64_t start = index[0];
+    uint64_t end = index[1];
+    uint64_t len = end - start;
+
+    char* buffer = new char[len];
+
+    MPI_File_seek(fin, start, MPI_SEEK_SET);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 6 seek data file : " << clock.timeIncrement() << endl;
+    
+    MPI_File_read(fin, buffer, len, MPI_CHAR, &status);
+    
+    Info << "Foam::decomposedBlockData::readBlocks time 7 read data file : " << clock.timeIncrement() << endl;
+
+    MPI_File_close(&fin);
+
+    Info << "Foam::decomposedBlockData::readBlocks time 8 close data file : " << clock.timeIncrement() << endl;
+
+    string rowdata_buf(buffer, len);
+    IStringStream row_stream(rowdata_buf);
+    row_stream.format(is_format_string);
+
+    List<char> data;
+    row_stream >> data;
+
+    string buf(data.begin(), data.size());
+    realIsPtr = new IStringStream(fName, buf);
+
+    if(UPstream::master(comm)){
+        if(!headerIO.readHeader(realIsPtr()))
+        {
+            FatalIOErrorInFunction(realIsPtr())
+                << "problem while reading header for object "
+                << isPtr().name() << exit(FatalIOError);
+        }
+    }
+  
+    delete [] buffer;
+
+    // ---------------------------------------------------------------------------------
+
+    // version
+    string versionString(realIsPtr().version().str());
+    Pstream::scatter(versionString,  Pstream::msgType(), comm);
+    realIsPtr().version(IStringStream(versionString)());
+
+    // stream
+    OStringStream os;
+    os << realIsPtr().format();
+    string formatString(os.str());
+    Pstream::scatter(formatString,  Pstream::msgType(), comm);
+    realIsPtr().format(formatString);
+
+    word name(headerIO.name());
+    Pstream::scatter(name, Pstream::msgType(), comm);
+    headerIO.rename(name);
+    Pstream::scatter(headerIO.headerClassName(), Pstream::msgType(), comm);
+    Pstream::scatter(headerIO.note(), Pstream::msgType(), comm);
+    Info << "Foam::decomposedBlockData::readBlocks time 9 other : " << clock.timeIncrement() << endl;
+
+    // Pstream::scatter(headerIO.instance(), Pstream::msgType(), comm);
+    // Pstream::scatter(headerIO.local(), Pstream::msgType(), comm);
+
+    Info << "Foam::decomposedBlockData::readBlocks time : " << clock.elapsedTime() << endl;
+    return realIsPtr;
+}
+
+#endif
+
+
+#ifdef decomposedBlockData_PARALLEL_IO_TWOLEVEL
+
+Foam::autoPtr<Foam::ISstream> Foam::decomposedBlockData::readBlocks
+(
+    const label comm,
+    const fileName& fName,
+    autoPtr<ISstream>& isPtr,
+    IOobject& headerIO,
+    const UPstream::commsTypes commsType
+)
+{
+    syncClockTime clock;
+    if (debug)
+    {
+        Pout<< "decomposedBlockData::readBlocks:"
+            << " stream:" << (isPtr.valid() ? isPtr().name() : "invalid")
+            << " commsType:" << Pstream::commsTypeNames[commsType] << endl;
+    }
+
+    MPI_Comm global_comm = UPstream::getGlobalCommunicator();
+    int global_mpisize = UPstream::nProcs(comm);
+    int global_mpirank = UPstream::myProcNo(comm);
+
+    int new_mpisize;    
+    int new_mpirank;   
+    MPI_Comm_size(UPstream::getTwoLevelCommunicator(), &new_mpisize);
+    MPI_Comm_rank(UPstream::getTwoLevelCommunicator(), &new_mpirank);
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 0 comm info : " << clock.timeIncrement() << endl;
+
+    // parallel io ----------------------------------------
+    fileName file_name;
+    if (UPstream::master(comm)){
+        file_name = isPtr().name();
+    } 
+    
+    Pstream::scatter(file_name, Pstream::msgType(), comm);
+
+    fileName index_file_name = file_name + ".index";
+
+    string is_format_string;
+    if(UPstream::master(comm)){
+        OStringStream format_oss;
+        format_oss << isPtr().format();
+        is_format_string = format_oss.str();
+    }
+    Pstream::scatter(is_format_string,  Pstream::msgType(), comm);
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 1 other : " << clock.timeIncrement() << endl;
+    
+    FILE* fin;
+    if(new_mpirank == 0){
+        fin = fopen(index_file_name.c_str(), "r");
+        if(fin == NULL){
+            Pout << "In line " << __LINE__ << " : file open errorr !!! in rank " << global_mpirank << endl;
+            MPI_Abort(global_comm, -1);   
+        }
+    }
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 2 open index file : " << clock.timeIncrement() << endl;
+
+    uint64_t* index;
+
+    if(new_mpirank == 0){
+        index = new uint64_t[new_mpisize + 1];
+        fseek(fin, global_mpirank * sizeof(uint64_t), SEEK_SET);
+    }
+    
+    // Info << "Foam::decomposedBlockData::readBlocks time 3 seek index file : " << clock.timeIncrement() << endl;
+
+    if(new_mpirank == 0){
+        fread(index, sizeof(uint64_t), new_mpisize + 1, fin);
+    }
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 4 read index file : " << clock.timeIncrement() << endl;
+
+    if(new_mpirank == 0){
+        fclose(fin);
+    }
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 5 close index file : " << clock.timeIncrement() << endl;
+
+    autoPtr<ISstream> realIsPtr;
+    char* send_buffer;
+    char* recv_buffer;
+    int* sendcounts;
+    int* displs;
+    uint64_t total_start, total_end, total_len;
+
+    if(new_mpirank == 0){
+        total_start = index[0];
+        total_end = index[new_mpisize];
+        total_len = total_end - total_start;
+        sendcounts = new int[new_mpisize];
+        displs = new int[new_mpisize];
+        send_buffer = new char[total_len];
+
+        for(int p = 0; p < new_mpisize; ++p){
+            sendcounts[p] = index[p + 1] - index[p];
+            displs[p] = index[p] - total_start;
+        }
+    }
+    // Info << "Foam::decomposedBlockData::readBlocks time 6 process index : " << clock.timeIncrement() << endl;
+
+    int recvcount;
+    MPI_Scatter(sendcounts, 1, MPI_INT, &recvcount, 1, MPI_INT, 0, UPstream::getTwoLevelCommunicator());
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 7 scatter sendcount : " << clock.timeIncrement() << endl;
+    
+    if(new_mpirank == 0){
+        fin = fopen(file_name.c_str(), "r");
+        if(fin == NULL){
+            Pout << "In line " << __LINE__ << " : file open errorr !!! in rank " << global_mpirank << endl;
+            MPI_Abort(global_comm, -1);
+        }
+    }
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 8 open data file : " << clock.timeIncrement() << endl;
+    
+    if(new_mpirank == 0){
+        fseek(fin, total_start, SEEK_SET);
+    }
+    
+    // Info << "Foam::decomposedBlockData::readBlocks time 9 seek data file : " << clock.timeIncrement() << endl;
+    
+    if(new_mpirank == 0){
+        fread(send_buffer, sizeof(char), total_len, fin);
+    }
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 10 read data file : " << clock.timeIncrement() << endl;
+
+    if(new_mpirank == 0){
+        fclose(fin);
+    }
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 11 close data file : " << clock.timeIncrement() << endl;
+
+    recv_buffer = new char[recvcount];
+    MPI_Scatterv(send_buffer, sendcounts, displs, MPI_CHAR,
+                 recv_buffer, recvcount, MPI_CHAR,
+                 0, UPstream::getTwoLevelCommunicator());
+
+    // Info << "Foam::decomposedBlockData::readBlocks time 12 scatterv data : " << clock.timeIncrement() << endl;
+
+    string rowdata_buf(recv_buffer, recvcount);
+    IStringStream row_stream(rowdata_buf);
+    row_stream.format(is_format_string);
+
+    List<char> data;
+    row_stream >> data;
+
+    string buf(data.begin(), data.size());
+    realIsPtr = new IStringStream(fName, buf);
+
+    if(UPstream::master(comm)){
+        if(!headerIO.readHeader(realIsPtr()))
+        {
+            FatalIOErrorInFunction(realIsPtr())
+                << "problem while reading header for object "
+                << isPtr().name() << exit(FatalIOError);
+        }
+    }
+  
+    delete [] recv_buffer;
+    if(new_mpirank == 0){
+        delete [] send_buffer;
+        delete [] sendcounts;
+        delete [] displs;
+        delete [] index;
+    }
+
+    // ---------------------------------------------------------------------------------
+
+    // version
+    string versionString(realIsPtr().version().str());
+    Pstream::scatter(versionString,  Pstream::msgType(), comm);
+    realIsPtr().version(IStringStream(versionString)());
+
+    // stream
+    OStringStream os;
+    os << realIsPtr().format();
+    string formatString(os.str());
+    Pstream::scatter(formatString,  Pstream::msgType(), comm);
+    realIsPtr().format(formatString);
+
+    word name(headerIO.name());
+    Pstream::scatter(name, Pstream::msgType(), comm);
+    headerIO.rename(name);
+    Pstream::scatter(headerIO.headerClassName(), Pstream::msgType(), comm);
+    Pstream::scatter(headerIO.note(), Pstream::msgType(), comm);
+    // Info << "Foam::decomposedBlockData::readBlocks time 13 other : " << clock.timeIncrement() << endl;
+
+    // Pstream::scatter(headerIO.instance(), Pstream::msgType(), comm);
+    // Pstream::scatter(headerIO.local(), Pstream::msgType(), comm);
+
+    Info << "Foam::decomposedBlockData::readBlocks time : " << clock.elapsedTime() << endl;
+    return realIsPtr;
+}
+
+#endif
 
 void Foam::decomposedBlockData::gather
 (

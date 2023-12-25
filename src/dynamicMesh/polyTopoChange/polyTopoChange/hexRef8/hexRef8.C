@@ -43,6 +43,7 @@ License
 #include "refinementData.H"
 #include "refinementDistanceData.H"
 #include "degenerateMatcher.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -350,6 +351,7 @@ void Foam::hexRef8::modFace
 // Bit complex way to determine the unrefined edge length.
 Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
 {
+    syncClockTime clock;
     if (cellLevel_.size() != mesh_.nCells())
     {
         FatalErrorInFunction
@@ -365,7 +367,11 @@ Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
 
     const scalar great2 = sqr(great);
 
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 0 : " << clock.timeIncrement() << endl;
+
     label nLevels = gMax(cellLevel_)+1;
+
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 1 : " << clock.timeIncrement() << endl;
 
     scalarField typEdgeLenSqr(nLevels, great2);
 
@@ -403,6 +409,8 @@ Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
             }
         }
 
+        Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 2 : " << clock.timeIncrement() << endl;
+
         // Make sure that edges with different levels on different processors
         // are also marked. Do the same test (edgeLevel != cLevel) on coupled
         // edges.
@@ -413,6 +421,8 @@ Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
             ifEqEqOp<labelMax>(),
             labelMin
         );
+
+        Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 3 : " << clock.timeIncrement() << endl;
 
         // Now use the edgeLevel with a valid value to determine the
         // length per level.
@@ -429,12 +439,17 @@ Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
                 typEdgeLenSqr[eLevel] = min(typEdgeLenSqr[eLevel], edgeLenSqr);
             }
         }
+
+        Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 4 : " << clock.timeIncrement() << endl;
+
     }
 
     // Get the minimum per level over all processors. Note minimum so if
     // cells are not cubic we use the smallest edge side.
     Pstream::listCombineGather(typEdgeLenSqr, minEqOp<scalar>());
     Pstream::listCombineScatter(typEdgeLenSqr);
+
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 5 : " << clock.timeIncrement() << endl;
 
     if (debug)
     {
@@ -452,6 +467,8 @@ Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
 
     scalarField maxEdgeLenSqr(nLevels, -great2);
 
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 3 : " << clock.timeIncrement() << endl;
+
     forAll(cellLevel_, celli)
     {
         const label cLevel = cellLevel_[celli];
@@ -468,8 +485,12 @@ Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
         }
     }
 
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 3 : " << clock.timeIncrement() << endl;
+
     Pstream::listCombineGather(maxEdgeLenSqr, maxEqOp<scalar>());
     Pstream::listCombineScatter(maxEdgeLenSqr);
+
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 3 : " << clock.timeIncrement() << endl;
 
     if (debug)
     {
@@ -496,6 +517,8 @@ Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
             << " Final Edgelengths (squared) per refinementlevel:"
             << typEdgeLenSqr << endl;
     }
+
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 3 : " << clock.timeIncrement() << endl;
 
     // Find lowest level present
     scalar level0Size = -1;
@@ -525,6 +548,9 @@ Foam::scalar Foam::hexRef8::getLevel0EdgeLength() const
         FatalErrorInFunction
             << "Problem : typEdgeLenSqr:" << typEdgeLenSqr << abort(FatalError);
     }
+
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time 4 : " << clock.timeIncrement() << endl;
+    Info << "Foam::scalar Foam::hexRef8::getLevel0EdgeLength time : " << clock.elapsedTime() << endl;
 
     return level0Size;
 }
@@ -1936,7 +1962,7 @@ Foam::hexRef8::hexRef8(const polyMesh& mesh, const bool readHistory)
             mesh_.facesInstance(),
             polyMesh::meshSubDir,
             mesh_,
-            IOobject::READ_IF_PRESENT,
+            IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
         labelList(mesh_.nCells(), 0)
@@ -1949,7 +1975,7 @@ Foam::hexRef8::hexRef8(const polyMesh& mesh, const bool readHistory)
             mesh_.facesInstance(),
             polyMesh::meshSubDir,
             mesh_,
-            IOobject::READ_IF_PRESENT,
+            IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
         labelList(mesh_.nPoints(), 0)
@@ -1962,7 +1988,7 @@ Foam::hexRef8::hexRef8(const polyMesh& mesh, const bool readHistory)
             mesh_.facesInstance(),
             polyMesh::meshSubDir,
             mesh_,
-            IOobject::READ_IF_PRESENT,
+            IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
         dimensionedScalar(dimLength, getLevel0EdgeLength())
@@ -1983,22 +2009,43 @@ Foam::hexRef8::hexRef8(const polyMesh& mesh, const bool readHistory)
     ),
     faceRemover_(mesh_, great),     // merge boundary faces wherever possible
     savedPointLevel_(0),
-    savedCellLevel_(0)
+    savedCellLevel_(0),
+    hexRef8_clock_(),
+    hexRef8_1_(hexRef8_clock_.timeIncrement()),
+    hexRef8_2_(hexRef8_clock_.timeIncrement()),
+    hexRef8_3_(hexRef8_clock_.timeIncrement()),
+    hexRef8_4_(hexRef8_clock_.timeIncrement()),
+    hexRef8_5_(hexRef8_clock_.timeIncrement()),
+    hexRef8_6_(hexRef8_clock_.timeIncrement()),
+    hexRef8_7_(hexRef8_clock_.timeIncrement()),
+    hexRef8_8_(hexRef8_clock_.timeIncrement()),
+    hexRef8_9_(hexRef8_clock_.timeIncrement())
 {
-    if (readHistory)
-    {
-        // Make sure we don't use the master-only reading. Bit of a hack for
-        // now.
-        regIOobject::fileCheckTypes oldType =
-            regIOobject::fileModificationChecking;
-        regIOobject::fileModificationChecking = regIOobject::timeStamp;
-        history_.readOpt() = IOobject::READ_IF_PRESENT;
-        if (history_.headerOk())
-        {
-            history_.read();
-        }
-        regIOobject::fileModificationChecking = oldType;
-    }
+    Info << "Foam::hexRef8::hexRef8 time -1 : " << hexRef8_1_ << endl;
+    Info << "Foam::hexRef8::hexRef8 time -2 : " << hexRef8_2_ << endl;
+    Info << "Foam::hexRef8::hexRef8 time -3 : " << hexRef8_3_ << endl;
+    Info << "Foam::hexRef8::hexRef8 time -4 : " << hexRef8_4_ << endl;
+    Info << "Foam::hexRef8::hexRef8 time -5 : " << hexRef8_5_ << endl;
+    Info << "Foam::hexRef8::hexRef8 time -6 : " << hexRef8_6_ << endl;
+    Info << "Foam::hexRef8::hexRef8 time -7 : " << hexRef8_7_ << endl;
+    Info << "Foam::hexRef8::hexRef8 time -8 : " << hexRef8_8_ << endl;
+    Info << "Foam::hexRef8::hexRef8 time -9 : " << hexRef8_9_ << endl;
+    syncClockTime clock;
+    // if (readHistory)
+    // {
+    //     // Make sure we don't use the master-only reading. Bit of a hack for
+    //     // now.
+    //     regIOobject::fileCheckTypes oldType =
+    //         regIOobject::fileModificationChecking;
+    //     regIOobject::fileModificationChecking = regIOobject::timeStamp;
+    //     history_.readOpt() = IOobject::READ_IF_PRESENT;
+    //     if (history_.headerOk())
+    //     {
+    //         history_.read();
+    //     }
+    //     regIOobject::fileModificationChecking = oldType;
+    // }
+    Info << "Foam::hexRef8::hexRef8 time 0 : " << clock.timeIncrement() << endl;
 
     if (history_.active() && history_.visibleCells().size() != mesh_.nCells())
     {
@@ -2010,6 +2057,7 @@ Foam::hexRef8::hexRef8(const polyMesh& mesh, const bool readHistory)
             << mesh_.nCells()
             << abort(FatalError);
     }
+    Info << "Foam::hexRef8::hexRef8 time 1 : " << clock.timeIncrement() << endl;
 
     if
     (
@@ -2029,10 +2077,12 @@ Foam::hexRef8::hexRef8(const polyMesh& mesh, const bool readHistory)
             << abort(FatalError);
     }
 
+    Info << "Foam::hexRef8::hexRef8 time 2 : " << clock.timeIncrement() << endl;
 
     // Check refinement levels for consistency
     checkRefinementLevels(-1, labelList(0));
 
+    Info << "Foam::hexRef8::hexRef8 time 3 : " << clock.timeIncrement() << endl;
 
     // Check initial mesh for consistency
 
@@ -2040,6 +2090,7 @@ Foam::hexRef8::hexRef8(const polyMesh& mesh, const bool readHistory)
     {
         checkMesh();
     }
+    Info << "Foam::hexRef8::hexRef8 time 4 : " << clock.timeIncrement() << endl;
 }
 
 

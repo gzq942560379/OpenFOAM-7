@@ -85,6 +85,43 @@ public:
         double timeIncrement() const;
 };
 
+class syncClockTime
+{
+    // Private Data
+
+        //- Time structure used
+        typedef struct timeval timeType;
+
+        timeType startTime_;
+
+        mutable timeType lastTime_;
+        mutable timeType newTime_;
+
+    // Private Member Functions
+
+        //- Retrieve the current time values from the system
+        static void getTime(timeType&);
+
+        //- Difference between two times
+        static double timeDifference(const timeType& beg, const timeType& end);
+
+
+public:
+
+    // Constructors
+
+        //- Construct with the current clock time
+        syncClockTime();
+
+
+    // Member Functions
+
+        //- Return time (in seconds) from the start
+        double elapsedTime() const;
+
+        //- Return time (in seconds) since last call to timeIncrement()
+        double timeIncrement() const;
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

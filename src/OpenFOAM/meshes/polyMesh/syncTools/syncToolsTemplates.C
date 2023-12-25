@@ -32,6 +32,7 @@ License
 #include "transform.H"
 #include "transformList.H"
 #include "SubField.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -1156,6 +1157,7 @@ void Foam::syncTools::syncEdgeList
     const TransformOp& top
 )
 {
+    syncClockTime clock;
     if (edgeValues.size() != mesh.nEdges())
     {
         FatalErrorInFunction
@@ -1165,11 +1167,16 @@ void Foam::syncTools::syncEdgeList
     }
 
     const globalMeshData& gd = mesh.globalData();
+    Info << "Foam::syncTools::syncEdgeList time 0.0 : " << clock.timeIncrement() << endl;
     const labelList& meshEdges = gd.coupledPatchMeshEdges();
+    Info << "Foam::syncTools::syncEdgeList time 0.1 : " << clock.timeIncrement() << endl;
     const globalIndexAndTransform& git = gd.globalTransforms();
+    Info << "Foam::syncTools::syncEdgeList time 0.2 : " << clock.timeIncrement() << endl;
     const mapDistribute& edgeMap = gd.globalEdgeSlavesMap();
+    Info << "Foam::syncTools::syncEdgeList time 0.3 : " << clock.timeIncrement() << endl;
 
     List<T> cppFld(UIndirectList<T>(edgeValues, meshEdges));
+    Info << "Foam::syncTools::syncEdgeList time 0 : " << clock.timeIncrement() << endl;
 
     globalMeshData::syncData
     (
@@ -1181,12 +1188,15 @@ void Foam::syncTools::syncEdgeList
         cop,
         top
     );
+    Info << "Foam::syncTools::syncEdgeList time 1 : " << clock.timeIncrement() << endl;
 
     // Extract back onto mesh
     forAll(meshEdges, i)
     {
         edgeValues[meshEdges[i]] = cppFld[i];
     }
+    Info << "Foam::syncTools::syncEdgeList time 2 : " << clock.timeIncrement() << endl;
+    Info << "Foam::syncTools::syncEdgeList time : " << clock.elapsedTime() << endl;
 }
 
 

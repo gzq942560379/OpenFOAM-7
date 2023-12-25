@@ -35,6 +35,7 @@ Description
 #include "Pstream.H"
 #include "ops.H"
 #include "vector2D.H"
+#include "vector.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -174,10 +175,210 @@ void reduce
 
 void reduce
 (
+    scalar& Value,
+    const maxOp<scalar>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    label& Value,
+    const sumOp<label>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    label& Value,
+    const minOp<label>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    label& Value,
+    const maxOp<label>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    bool& Value,
+    const orOp<bool>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    bool& Value,
+    const andOp<bool>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    vector& Value,
+    const sumOp<vector>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    vector& Value,
+    const minOp<vector>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    vector& Value,
+    const maxOp<vector>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
     vector2D& Value,
     const sumOp<vector2D>& bop,
     const int tag = Pstream::msgType(),
     const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    vector2D& Value,
+    const maxOp<vector2D>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+void reduce
+(
+    vector2D& Value,
+    const minOp<vector2D>& bop,
+    const int tag = Pstream::msgType(),
+    const label comm = UPstream::worldComm
+);
+
+scalar returnReduce
+(
+    const scalar& Value,
+    const sumOp<scalar>& bop,
+    const int tag,
+    const label comm
+);
+
+scalar returnReduce
+(
+    const scalar& Value,
+    const minOp<scalar>& bop,
+    const int tag,
+    const label comm
+);
+
+scalar returnReduce
+(
+    const scalar& Value,
+    const maxOp<scalar>& bop,
+    const int tag,
+    const label comm
+);
+
+label returnReduce
+(
+    const label& Value,
+    const sumOp<label>& bop,
+    const int tag,
+    const label comm
+);
+
+label returnReduce
+(
+    const label& Value,
+    const minOp<label>& bop,
+    const int tag,
+    const label comm
+);
+
+label returnReduce
+(
+    const label& Value,
+    const maxOp<label>& bop,
+    const int tag,
+    const label comm
+);
+
+bool returnReduce
+(
+    const bool& Value,
+    const orOp<bool>& bop,
+    const int tag,
+    const label comm
+);
+
+bool returnReduce
+(
+    const bool& Value,
+    const andOp<bool>& bop,
+    const int tag,
+    const label comm
+);
+
+vector returnReduce
+(
+    const vector& Value,
+    const sumOp<vector>& bop,
+    const int tag,
+    const label comm
+);
+
+vector returnReduce
+(
+    const vector& Value,
+    const minOp<vector>& bop,
+    const int tag,
+    const label comm
+);
+
+vector returnReduce
+(
+    const vector& Value,
+    const maxOp<vector>& bop,
+    const int tag,
+    const label comm
+);
+
+vector2D returnReduce
+(
+    const vector2D& Value,
+    const sumOp<vector2D>& bop,
+    const int tag,
+    const label comm
+);
+
+vector2D returnReduce
+(
+    const vector2D& Value,
+    const minOp<vector2D>& bop,
+    const int tag,
+    const label comm
+);
+
+vector2D returnReduce
+(
+    const vector2D& Value,
+    const maxOp<vector2D>& bop,
+    const int tag,
+    const label comm
 );
 
 void sumReduce

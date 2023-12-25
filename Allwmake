@@ -34,6 +34,6 @@ src/Allwmake $targetType $*
 
 # Compile OpenFOAM libraries and applications
 # applications/Allwmake $targetType $*
-
+wmake applications/utilities/parallelProcessing/decomposeParFieldParallel
 
 #------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2018 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2018 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,77 +21,33 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Namespace
-    Foam::PstreamGlobals
-
 Description
-    Global functions and variables for working with parallel streams,
-    but principally for mpi
-
-SourceFiles
-    PstreamGlobals.C
+    Gather data from all processors onto single processor according to some
+    communication schedule (usually linear-to-master or tree-to-master).
+    The gathered data will be a single value constructed from the values
+    on individual processors using a user-specified operator.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef PstreamGlobals_H
-#define PstreamGlobals_H
-
-#include "DynamicList.H"
-
+#include "Pstream.H"
 #include <mpi.h>
-
-#if defined(WM_SP)
-    #define MPI_SCALAR MPI_FLOAT
-#elif defined(WM_DP)
-    #define MPI_SCALAR MPI_DOUBLE
-#elif defined(WM_LP)
-    #define MPI_SCALAR MPI_LONG_DOUBLE
-#endif
-
-#if WM_ARCH_OPTION == 32
-    #define MPI_LABEL MPI_INT
-#elif WM_ARCH_OPTION == 64
-    #define MPI_LABEL MPI_LONG
-#else
-    #error "WM_ARCH_OPTION must be 32 or 64"
-#endif
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-/*---------------------------------------------------------------------------*\
-                           Class PstreamGlobals Declaration
-\*---------------------------------------------------------------------------*/
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-namespace PstreamGlobals
+void Pstream::barrier(const label comm)
 {
-    extern MPI_Comm MPI_COMM_FOAM;
-
-    extern MPI_Comm MPI_COMM_TWO_LEVEL;
-
-    extern DynamicList<MPI_Request> outstandingRequests_;
-
-    extern int nTags_;
-
-    extern DynamicList<int> freedTags_;
-
-    // Current communicators. First element will be MPI_COMM_FOAM
-    extern DynamicList<MPI_Comm> MPICommunicators_;
-
-    extern DynamicList<MPI_Group> MPIGroups_;
-
-    void checkCommunicator(const label, const label procNo);
-};
+    MPI_Barrier(getPstreamCommunicator(comm));
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

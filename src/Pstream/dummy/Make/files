@@ -1,5 +1,6 @@
 UPstream.C
 UIPread.C
 UOPwrite.C
+reduce.C
 
 LIB = $(FOAM_LIBBIN)/dummy/libPstream

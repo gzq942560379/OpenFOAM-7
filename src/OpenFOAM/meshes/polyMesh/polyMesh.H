@@ -55,6 +55,7 @@ SourceFiles
 #include "pointZoneMesh.H"
 #include "faceZoneMesh.H"
 #include "cellZoneMesh.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -112,31 +113,38 @@ public:
 private:
 
     // Permanent data
+        syncClockTime polyMesh_clock_;
 
         // Primitive mesh data
 
             //- Points
             pointIOField points_;
+        
+        double polyMesh_1_;
 
             //- Faces
             faceCompactIOList faces_;
+        double polyMesh_2_;
 
             //- Face owner
             labelIOList owner_;
+        double polyMesh_3_;
 
             //- Face neighbour
             labelIOList neighbour_;
+        double polyMesh_4_;
 
             //- Have the primitives been cleared
             bool clearedPrimitives_;
 
-
             //- Boundary mesh
             mutable polyBoundaryMesh boundary_;
+        double polyMesh_5_;
 
             //- Mesh bounding-box.
             //  Created from points on construction, updated when the mesh moves
             boundBox bounds_;
+        double polyMesh_6_;
 
             //- Communicator used for parallel communication
             label comm_;
@@ -148,28 +156,35 @@ private:
             //- Vector of valid directions in mesh
             //  defined according to the presence of empty patches
             mutable Vector<label> solutionD_;
+        double polyMesh_7_;
 
             //- Base point for face decomposition into tets
             mutable autoPtr<labelIOList> tetBasePtIsPtr_;
+        double polyMesh_8_;
 
             //- Search tree to allow spatial cell searching
             mutable autoPtr<indexedOctree<treeDataCell>> cellTreePtr_;
+        double polyMesh_9_;
 
 
         // Zoning information
 
             //- Point zones
             pointZoneMesh pointZones_;
+        double polyMesh_10_;
 
             //- Face zones
             faceZoneMesh faceZones_;
+        double polyMesh_11_;
 
             //- Cell zones
             cellZoneMesh cellZones_;
+        double polyMesh_12_;
 
 
         //- Parallel info
         mutable autoPtr<globalMeshData> globalMeshDataPtr_;
+        double polyMesh_13_;
 
 
         // Mesh motion related data
@@ -182,12 +197,15 @@ private:
 
             //- Current time index for mesh motion
             mutable label curMotionTimeIndex_;
+        double polyMesh_14_;
 
             //- Old points (for the last mesh motion)
             mutable autoPtr<pointField> oldPointsPtr_;
+        double polyMesh_15_;
 
             //- Old cell centres (for the last mesh motion)
             mutable autoPtr<pointField> oldCellCentresPtr_;
+        double polyMesh_16_;
 
             //- Whether or not to store the old cell centres
             mutable bool storeOldCellCentres_;

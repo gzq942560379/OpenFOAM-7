@@ -33,6 +33,9 @@ Note
 #include "PstreamGlobals.H"
 #include "SubList.H"
 #include "allReduce.H"
+#include "clockTime.H"
+#include "vector.H"
+#include "vector2D.H"
 
 #include <mpi.h>
 #include <omp.h>
@@ -66,6 +69,13 @@ void Foam::UPstream::addValidParOptions(HashTable<string>& validParOptions)
     validParOptions.insert("machinefile", "machine file");
 }
 
+static int env_get_int(const char* name, int default_value){
+    char* tmp = getenv(name);
+    if(tmp == NULL){
+        return default_value;
+    }
+    return std::atoi(tmp);
+}
 
 bool Foam::UPstream::init(int& argc, char**& argv, const bool needsThread)
 {
@@ -104,11 +114,33 @@ bool Foam::UPstream::init(int& argc, char**& argv, const bool needsThread)
         myGlobalRank,
         &PstreamGlobals::MPI_COMM_FOAM
     );
+    
+
+    // MPI_Comm_dup
+    // (
+    //     MPI_COMM_WORLD,
+    //     &PstreamGlobals::MPI_COMM_FOAM
+    // );
 
     int numprocs;
     MPI_Comm_size(PstreamGlobals::MPI_COMM_FOAM, &numprocs);
     int myRank;
     MPI_Comm_rank(PstreamGlobals::MPI_COMM_FOAM, &myRank);
+
+    int two_level_parallel_io_size = env_get_int("TWO_LEVEL_PARALLEL_IO_SIZE", 8);
+    if(myRank == 0){
+        std::cout << "two_level_parallel_io_size : " << two_level_parallel_io_size << std::endl;
+    }
+
+    int color = myRank / two_level_parallel_io_size;
+    int key = myRank % two_level_parallel_io_size;
+
+    MPI_Comm_split(PstreamGlobals::MPI_COMM_FOAM, color, key, &PstreamGlobals::MPI_COMM_TWO_LEVEL);
+
+    int new_mpisize;    
+    int new_mpirank;   
+    MPI_Comm_size(PstreamGlobals::MPI_COMM_TWO_LEVEL, &new_mpisize);
+    MPI_Comm_rank(PstreamGlobals::MPI_COMM_TWO_LEVEL, &new_mpirank);
 
     if (debug)
     {
@@ -211,129 +243,6 @@ void Foam::UPstream::exit(int errnum)
 void Foam::UPstream::abort()
 {
     MPI_Abort(PstreamGlobals::MPI_COMM_FOAM, 1);
-}
-
-
-void Foam::reduce
-(
-    scalar& Value,
-    const sumOp<scalar>& bop,
-    const int tag,
-    const label communicator
-)
-{
-    if (UPstream::warnComm != -1 && communicator != UPstream::warnComm)
-    {
-        Pout<< "** reducing:" << Value << " with comm:" << communicator
-            << " warnComm:" << UPstream::warnComm
-            << endl;
-        error::printStack(Pout);
-    }
-    allReduce(Value, 1, MPI_SCALAR, MPI_SUM, bop, tag, communicator);
-}
-
-
-void Foam::reduce
-(
-    scalar& Value,
-    const minOp<scalar>& bop,
-    const int tag,
-    const label communicator
-)
-{
-    if (UPstream::warnComm != -1 && communicator != UPstream::warnComm)
-    {
-        Pout<< "** reducing:" << Value << " with comm:" << communicator
-            << " warnComm:" << UPstream::warnComm
-            << endl;
-        error::printStack(Pout);
-    }
-    allReduce(Value, 1, MPI_SCALAR, MPI_MIN, bop, tag, communicator);
-}
-
-
-void Foam::reduce
-(
-    vector2D& Value,
-    const sumOp<vector2D>& bop,
-    const int tag,
-    const label communicator
-)
-{
-    if (UPstream::warnComm != -1 && communicator != UPstream::warnComm)
-    {
-        Pout<< "** reducing:" << Value << " with comm:" << communicator
-            << " warnComm:" << UPstream::warnComm
-            << endl;
-        error::printStack(Pout);
-    }
-    allReduce(Value, 2, MPI_SCALAR, MPI_SUM, bop, tag, communicator);
-}
-
-
-void Foam::sumReduce
-(
-    scalar& Value,
-    label& Count,
-    const int tag,
-    const label communicator
-)
-{
-    if (UPstream::warnComm != -1 && communicator != UPstream::warnComm)
-    {
-        Pout<< "** reducing:" << Value << " with comm:" << communicator
-            << " warnComm:" << UPstream::warnComm
-            << endl;
-        error::printStack(Pout);
-    }
-    vector2D twoScalars(Value, scalar(Count));
-    reduce(twoScalars, sumOp<vector2D>(), tag, communicator);
-
-    Value = twoScalars.x();
-    Count = twoScalars.y();
-}
-
-
-void Foam::reduce
-(
-    scalar& Value,
-    const sumOp<scalar>& bop,
-    const int tag,
-    const label communicator,
-    label& requestID
-)
-{
-#ifdef MPIX_COMM_TYPE_SHARED
-    // Assume mpich2 with non-blocking collectives extensions. Once mpi3
-    // is available this will change.
-    MPI_Request request;
-    scalar v = Value;
-    MPIX_Ireduce
-    (
-        &v,
-        &Value,
-        1,
-        MPI_SCALAR,
-        MPI_SUM,
-        0,              // root
-        PstreamGlobals::MPICommunicators_[communicator],
-        &request
-    );
-
-    requestID = PstreamGlobals::outstandingRequests_.size();
-    PstreamGlobals::outstandingRequests_.append(request);
-
-    if (UPstream::debug)
-    {
-        Pout<< "UPstream::allocateRequest for non-blocking reduce"
-            << " : request:" << requestID
-            << endl;
-    }
-#else
-    // Non-blocking not yet implemented in mpi
-    reduce(Value, bop, tag, communicator);
-    requestID = -1;
-#endif
 }
 
 
@@ -702,6 +611,14 @@ void Foam::UPstream::freePstreamCommunicator(const label communicator)
 MPI_Comm Foam::UPstream::getPstreamCommunicator(const label communicator)
 {
     return PstreamGlobals::MPICommunicators_[communicator];
+}
+
+MPI_Comm Foam::UPstream::getGlobalCommunicator(){
+    return PstreamGlobals::MPI_COMM_FOAM;
+}
+
+MPI_Comm Foam::UPstream::getTwoLevelCommunicator(){
+    return PstreamGlobals::MPI_COMM_TWO_LEVEL;
 }
 
 Foam::label Foam::UPstream::nRequests()

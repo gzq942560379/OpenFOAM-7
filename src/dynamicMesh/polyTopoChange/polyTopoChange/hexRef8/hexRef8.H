@@ -45,6 +45,7 @@ SourceFiles
 #include "PackedBoolList.H"
 #include "uniformDimensionedFields.H"
 #include "cellShapeList.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -65,33 +66,44 @@ class mapDistributePolyMesh;
 class hexRef8
 {
     // Private Data
+        syncClockTime hexRef8_clock_;
 
         //- Reference to underlying mesh.
         const polyMesh& mesh_;
 
+        double hexRef8_1_;
+
         //- Per cell the refinement level
         labelIOList cellLevel_;
+        double hexRef8_2_;
 
         //- Per point the refinement level
         labelIOList pointLevel_;
+        double hexRef8_3_;
 
         //- Typical edge length between unrefined points
         uniformDimensionedScalarField level0Edge_;
+        double hexRef8_4_;
 
         //- Refinement history
         refinementHistory history_;
+        double hexRef8_5_;
 
         //- Face remover engine
         removeFaces faceRemover_;
+        double hexRef8_6_;
 
         //- Level of saved points
         Map<label> savedPointLevel_;
+        double hexRef8_7_;
 
         //- Level of saved cells
         Map<label> savedCellLevel_;
+        double hexRef8_8_;
 
         //- Cell shapes when seen as split hexes
         mutable autoPtr<cellShapeList> cellShapesPtr_;
+        double hexRef8_9_;
 
 
     // Private Member Functions

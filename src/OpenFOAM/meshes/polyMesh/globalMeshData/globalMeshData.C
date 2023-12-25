@@ -33,6 +33,7 @@ License
 #include "labelIOList.H"
 #include "mergePoints.H"
 #include "globalIndexAndTransform.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -890,6 +891,7 @@ Foam::label Foam::globalMeshData::findTransform
 
 void Foam::globalMeshData::calcGlobalEdgeSlaves() const
 {
+    syncClockTime clock;
     if (debug)
     {
         Pout<< "globalMeshData::calcGlobalEdgeSlaves() :"
@@ -900,7 +902,7 @@ void Foam::globalMeshData::calcGlobalEdgeSlaves() const
     const globalIndex& globalEdgeNumbers = globalEdgeNumbering();
     const globalIndexAndTransform& transforms = globalTransforms();
 
-
+    Info << "Foam::globalMeshData::calcGlobalEdgeSlaves time 0 : " << clock.timeIncrement() << endl;
     // The whole problem with deducting edge-connectivity from
     // point-connectivity is that one of the endpoints might be
     // a local master but the other endpoint might not. So we first
@@ -913,6 +915,7 @@ void Foam::globalMeshData::calcGlobalEdgeSlaves() const
     // in respect to the master.
     List<labelPairList> allPointConnectivity;
     calcPointConnectivity(allPointConnectivity);
+    Info << "Foam::globalMeshData::calcGlobalEdgeSlaves time 1 : " << clock.timeIncrement() << endl;
 
 
     // 2. Get all pointEdges and pointPoints
@@ -920,6 +923,7 @@ void Foam::globalMeshData::calcGlobalEdgeSlaves() const
     labelListList globalPointEdges;
     List<labelPairList> globalPointPoints;
     calcGlobalPointEdges(globalPointEdges, globalPointPoints);
+    Info << "Foam::globalMeshData::calcGlobalEdgeSlaves time 2 : " << clock.timeIncrement() << endl;
 
 
     // 3. Now all points have
@@ -1011,6 +1015,7 @@ void Foam::globalMeshData::calcGlobalEdgeSlaves() const
             globalIndexAndTransform::less(transforms)
         );
     }
+    Info << "Foam::globalMeshData::calcGlobalEdgeSlaves time 3 : " << clock.timeIncrement() << endl;
 
     // We now have - in allEdgeConnectivity - a list of edges which are shared
     // between multiple processors. Filter into non-transformed and transformed
@@ -1075,6 +1080,7 @@ void Foam::globalMeshData::calcGlobalEdgeSlaves() const
             }
         }
     }
+    Info << "Foam::globalMeshData::calcGlobalEdgeSlaves time 4 : " << clock.timeIncrement() << endl;
 
 
     // Construct map
@@ -1096,6 +1102,8 @@ void Foam::globalMeshData::calcGlobalEdgeSlaves() const
         )
     );
 
+    Info << "Foam::globalMeshData::calcGlobalEdgeSlaves time 5 : " << clock.timeIncrement() << endl;
+    Info << "Foam::globalMeshData::calcGlobalEdgeSlaves time : " << clock.elapsedTime() << endl;
 
     if (debug)
     {
@@ -2762,13 +2770,20 @@ void Foam::globalMeshData::movePoints(const pointField& newPoints)
 
 void Foam::globalMeshData::updateMesh()
 {
+    syncClockTime clock;
     // Clear out old data
     clearOut();
+
+    Info << "Foam::globalMeshData::updateMesh time 0 : " << clock.timeIncrement() << endl;
 
     // Do processor patch addressing
     initProcAddr();
 
+    Info << "Foam::globalMeshData::updateMesh time 1 : " << clock.timeIncrement() << endl;
+
     scalar tolDim = matchTol_ * mesh_.bounds().mag();
+
+    Info << "Foam::globalMeshData::updateMesh time 2 : " << clock.timeIncrement() << endl;
 
     if (debug)
     {
@@ -2784,6 +2799,7 @@ void Foam::globalMeshData::updateMesh()
         true
     );
 
+    Info << "Foam::globalMeshData::updateMesh time 3 : " << clock.timeIncrement() << endl;
     // Total number of faces.
     nTotalFaces_ = returnReduce
     (
@@ -2797,6 +2813,7 @@ void Foam::globalMeshData::updateMesh()
     {
         Pout<< "globalMeshData : nTotalFaces_:" << nTotalFaces_ << endl;
     }
+    Info << "Foam::globalMeshData::updateMesh time 4 : " << clock.timeIncrement() << endl;
 
     nTotalCells_ = returnReduce
     (
@@ -2805,6 +2822,7 @@ void Foam::globalMeshData::updateMesh()
         Pstream::msgType(),
         comm
     );
+    Info << "Foam::globalMeshData::updateMesh time 5 : " << clock.timeIncrement() << endl;
 
     if (debug)
     {
@@ -2818,6 +2836,7 @@ void Foam::globalMeshData::updateMesh()
         Pstream::msgType(),
         comm
     );
+    Info << "Foam::globalMeshData::updateMesh time 6 : " << clock.timeIncrement() << endl;
 
     UPstream::freeCommunicator(comm);
 
@@ -2825,6 +2844,7 @@ void Foam::globalMeshData::updateMesh()
     {
         Pout<< "globalMeshData : nTotalPoints_:" << nTotalPoints_ << endl;
     }
+    Info << "Foam::globalMeshData::updateMesh time 7 : " << clock.timeIncrement() << endl;
 }
 
 

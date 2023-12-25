@@ -26,6 +26,7 @@ License
 #include "globalMeshData.H"
 #include "polyMesh.H"
 #include "mapDistribute.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -41,8 +42,11 @@ void Foam::globalMeshData::syncData
     const TransformOp& top
 )
 {
+    syncClockTime clock;
     // Pull slave data onto master
     slavesMap.distribute(transforms, elems, top);
+
+    Info << "Foam::globalMeshData::syncData time 0 : " << clock.timeIncrement() << endl;
 
     // Combine master data with slave data
     forAll(slaves, i)
@@ -91,6 +95,8 @@ void Foam::globalMeshData::syncData
         }
     }
 
+    Info << "Foam::globalMeshData::syncData time 1 : " << clock.timeIncrement() << endl;
+
     // Push slave-slot data back to slaves
     slavesMap.reverseDistribute
     (
@@ -99,6 +105,9 @@ void Foam::globalMeshData::syncData
         elems,
         top
     );
+
+    Info << "Foam::globalMeshData::syncData time 2 : " << clock.timeIncrement() << endl;
+    Info << "Foam::globalMeshData::syncData time : " << clock.elapsedTime() << endl;
 }
 
 
