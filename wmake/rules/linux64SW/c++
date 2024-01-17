@@ -28,7 +28,7 @@ c++ARCH     = -std=c++11 -mftz -mieee -DvectorMachine
 
 include $(DEFAULT_RULES)/c++$(WM_COMPILE_OPTION)
 
-c++FLAGS    = $(c++ARCH) $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -mhost -fPIC
+c++FLAGS    = $(c++ARCH) $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) $(LIB_HEADER_DIRS) -mhost
 
 Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
 cxxtoo      = $(Ctoo)
