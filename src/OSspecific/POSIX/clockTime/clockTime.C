@@ -25,6 +25,8 @@ License
 
 #include "clockTime.H"
 #include <sys/time.h>
+#include "Pstream.H"
+
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -60,6 +62,56 @@ double Foam::clockTime::elapsedTime() const
 
 
 double Foam::clockTime::timeIncrement() const
+{
+    lastTime_ = newTime_;
+    getTime(newTime_);
+    return timeDifference(lastTime_, newTime_);
+}
+
+
+// ************************************************************************* //
+
+
+// syncClockTime -----------------------------------------------------------------------
+
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::syncClockTime::getTime(timeType& t)
+{
+    if(UPstream::parRun()){
+        Pstream::barrier();
+    }
+    gettimeofday(&t, 0);
+}
+
+
+double Foam::syncClockTime::timeDifference(const timeType& beg, const timeType& end)
+{
+    return end.tv_sec - beg.tv_sec + 1e-6*(end.tv_usec - beg.tv_usec);
+}
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::syncClockTime::syncClockTime()
+{
+    getTime(startTime_);
+    lastTime_ = startTime_;
+    newTime_ = startTime_;
+}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+double Foam::syncClockTime::elapsedTime() const
+{
+    getTime(newTime_);
+    return timeDifference(startTime_, newTime_);
+}
+
+
+double Foam::syncClockTime::timeIncrement() const
 {
     lastTime_ = newTime_;
     getTime(newTime_);

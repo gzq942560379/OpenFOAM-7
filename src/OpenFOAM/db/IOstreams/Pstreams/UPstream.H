@@ -49,6 +49,22 @@ SourceFiles
 #include <mpi.h>
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#if defined(WM_SP)
+    #define MPI_SCALAR MPI_FLOAT
+#elif defined(WM_DP)
+    #define MPI_SCALAR MPI_DOUBLE
+#elif defined(WM_LP)
+    #define MPI_SCALAR MPI_LONG_DOUBLE
+#endif
+
+#if WM_ARCH_OPTION == 32
+    #define MPI_LABEL MPI_INT
+#elif WM_ARCH_OPTION == 64
+    #define MPI_LABEL MPI_LONG
+#else
+    #error "WM_ARCH_OPTION must be 32 or 64"
+#endif
+
 namespace Foam
 {
 
@@ -360,6 +376,10 @@ public:
         (
             const label index
         );
+    
+            //- Free a communicator
+        static MPI_Comm getGlobalCommunicator();
+        static MPI_Comm getTwoLevelCommunicator();
 
         //- Return processor number in communicator (given processor number
         //  and communicator)

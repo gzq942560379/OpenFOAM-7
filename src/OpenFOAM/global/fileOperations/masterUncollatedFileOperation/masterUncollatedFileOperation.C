@@ -37,6 +37,7 @@ License
 #include "unthreadedInitialise.H"
 #include "PackedBoolList.H"
 #include "gzstream.h"
+#include "clockTime.H"
 
 /* * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * */
 
@@ -562,6 +563,9 @@ Foam::fileOperations::masterUncollatedFileOperation::read
     const boolList& read            // on comms master only
 )
 {
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::read start" << endl;
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::read uniform : " << uniform << endl;
+    syncClockTime clock;
     autoPtr<ISstream> isPtr;
 
     // const bool uniform = uniformFile(filePaths);
@@ -705,6 +709,7 @@ Foam::fileOperations::masterUncollatedFileOperation::read
         isPtr.reset(new dummyISstream());
     }
 
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::read time : " << clock.elapsedTime() << endl;
     return isPtr;
 }
 
@@ -1869,6 +1874,12 @@ Foam::fileOperations::masterUncollatedFileOperation::readStream
     const bool read
 ) const
 {
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::readStream start" << endl;
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::readStream io.name() : " << io.name() << endl;
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::readStream io.global() : " << io.global() << endl;
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::readStream UPstream::parRun() : " << UPstream::parRun() << endl;
+    
+    syncClockTime clock;
     if (debug)
     {
         Pout<< "masterUncollatedFileOperation::readStream :"
@@ -1929,7 +1940,9 @@ Foam::fileOperations::masterUncollatedFileOperation::readStream
         }
     }
 
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::readStream time 0 read header : " << clock.timeIncrement() << endl;
     Pstream::scatter(isCollated);   //, Pstream::msgType(), comm_);
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::readStream time 1 scatter isCollated : " << clock.timeIncrement() << endl;
 
     if (isCollated)
     {
@@ -1942,19 +1955,18 @@ Foam::fileOperations::masterUncollatedFileOperation::readStream
 
 
         // Analyse the file path (on (co)master) to see the processors type
-        fileName path, procDir, local;
-        label groupStart, groupSize, nProcs;
-        splitProcessorPath
-        (
-            fName,
-            path,
-            procDir,
-            local,
-            groupStart,
-            groupSize,
-            nProcs
-        );
-
+        // fileName path, procDir, local;
+        // label groupStart, groupSize, nProcs;
+        // splitProcessorPath
+        // (
+        //     fName,
+        //     path,
+        //     procDir,
+        //     local,
+        //     groupStart,
+        //     groupSize,
+        //     nProcs
+        // );
 
         List<char> data;
         if (!Pstream::parRun())
@@ -1962,6 +1974,7 @@ Foam::fileOperations::masterUncollatedFileOperation::readStream
             // Analyse the objectpath to find out the processor we're trying
             // to access
             label proci = detectProcessorPath(io.objectPath());
+            Info << "Foam::fileOperations::masterUncollatedFileOperation::readStream isNotCollated time 2 detectProcessorPath : " << clock.timeIncrement() << endl;
 
             if (proci == -1)
             {
@@ -1974,10 +1987,10 @@ Foam::fileOperations::masterUncollatedFileOperation::readStream
             // Analyse the fileName for any processor subset. Note: this
             // should really be part of filePath() which should return
             // both file and index in file.
-            if (groupStart != -1 && groupSize > 0)
-            {
-                proci = proci-groupStart;
-            }
+            // if (groupStart != -1 && groupSize > 0)
+            // {
+            //     proci = proci-groupStart;
+            // }
 
             if (debug)
             {
@@ -2006,35 +2019,37 @@ Foam::fileOperations::masterUncollatedFileOperation::readStream
             Pstream::scatter(formatString); //,  Pstream::msgType(), comm);
 
             // Get size of file
-            off_t sz = Foam::fileSize(fName);
-            bool bigSize = sz > off_t(maxMasterFileBufferSize);
-            Pstream::scatter(bigSize);
+            // off_t sz = Foam::fileSize(fName);
+            // bool bigSize = sz > off_t(maxMasterFileBufferSize);
+            // Pstream::scatter(bigSize);
 
             // Are we reading from single-master file ('processors256') or
             // from multi-master files ('processors256_0-9')
             label readComm = -1;
-            if (groupStart != -1 && groupSize > 0)
-            {
-                readComm = comm_;
-                if (UPstream::master(comm_) && !isPtr.valid() && !fName.empty())
-                {
-                    // In multi-master mode also open the file on the other
-                    // masters
-                    isPtr.reset(new IFstream(fName));
+            // if (groupStart != -1 && groupSize > 0)
+            // {
+            //     readComm = comm_;
+            //     if (UPstream::master(comm_) && !isPtr.valid() && !fName.empty())
+            //     {
+            //         // In multi-master mode also open the file on the other
+            //         // masters
+            //         isPtr.reset(new IFstream(fName));
 
-                    if (isPtr().good())
-                    {
-                        // Read header data (on copy)
-                        IOobject headerIO(io);
-                        headerIO.readHeader(isPtr());
-                    }
-                }
-            }
-            else
-            {
+            //         if (isPtr().good())
+            //         {
+            //             // Read header data (on copy)
+            //             IOobject headerIO(io);
+            //             headerIO.readHeader(isPtr());
+            //         }
+            //     }
+            // }
+            // else
+            // {
                 // Single master so read on world
                 readComm = Pstream::worldComm;
-            }
+            // }
+
+            Info << "Foam::fileOperations::masterUncollatedFileOperation::readStream isCollated time 2 scatter header : " << clock.timeIncrement() << endl;
 
             // Read my data
             return decomposedBlockData::readBlocks
@@ -2043,11 +2058,12 @@ Foam::fileOperations::masterUncollatedFileOperation::readStream
                 fName,
                 isPtr,
                 io,
-                (
-                    bigSize
-                  ? UPstream::commsTypes::scheduled
-                  : UPstream::commsTypes::nonBlocking
-                )
+                // (
+                //     bigSize
+                //   ? UPstream::commsTypes::scheduled
+                //   : UPstream::commsTypes::nonBlocking
+                // )
+                UPstream::commsTypes::nonBlocking
             );
         }
     }
@@ -2114,6 +2130,11 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
     const word& typeName
 ) const
 {
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::read start" << endl;
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::read io.name() : " << io.name() << endl;
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::read io.global() : " << io.global() << endl;
+    syncClockTime clock;
+
     bool ok = true;
 
     if (io.global())
@@ -2131,6 +2152,8 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
         // Trigger caching of times
         (void)findTimes(io.time().path(), io.time().constant());
 
+        Info << "Foam::fileOperations::masterUncollatedFileOperation::read global time 0 lookupProcessorsPath findTimes : " << clock.timeIncrement() << endl;
+
         bool ok = false;
         if (Pstream::master())  // comm_))
         {
@@ -2144,10 +2167,13 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
             UPstream::parRun() = oldParRun;
         }
 
+        Info << "Foam::fileOperations::masterUncollatedFileOperation::read global time 2 readData : " << clock.timeIncrement() << endl;
+
         Pstream::scatter(ok);   //, Pstream::msgType(), comm_);
         Pstream::scatter(io.headerClassName()); //, Pstream::msgType(), comm_);
         Pstream::scatter(io.note());    //, Pstream::msgType(), comm_);
 
+        Info << "Foam::fileOperations::masterUncollatedFileOperation::read global time 3 scatter header : " << clock.timeIncrement() << endl;
 
         // scatter operation for regIOobjects
 
@@ -2190,6 +2216,8 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
             bool okWrite = io.writeData(toBelow);
             ok = ok && okWrite;
         }
+
+        Info << "Foam::fileOperations::masterUncollatedFileOperation::read global time 4 scatter data : " << clock.timeIncrement() << endl;
     }
     else
     {
@@ -2201,8 +2229,10 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
 
         ok = io.readData(io.readStream(typeName));
         io.close();
+        Info << "Foam::fileOperations::masterUncollatedFileOperation::read non-global time 0 readStream : " << clock.timeIncrement() << endl;
     }
-
+    
+    Info << "Foam::fileOperations::masterUncollatedFileOperation::read time : " << clock.elapsedTime() << endl;
     return ok;
 }
 

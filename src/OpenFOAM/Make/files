@@ -188,6 +188,11 @@ $(Pstreams)/Pstream.C
 $(Pstreams)/UOPstream.C
 $(Pstreams)/OPstream.C
 $(Pstreams)/PstreamBuffers.C
+$(Pstreams)/barrier.C
+$(Pstreams)/combineGatherScatterS.C
+$(Pstreams)/exchangeS.C
+$(Pstreams)/gatherScatterListS.C
+$(Pstreams)/gatherScatterS.C
 
 dictionary = db/dictionary
 $(dictionary)/dictionary.C

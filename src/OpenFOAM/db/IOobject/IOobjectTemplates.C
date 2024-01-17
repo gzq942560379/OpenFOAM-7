@@ -28,12 +28,14 @@ License
 #include "Istream.H"
 #include "IOstreams.H"
 #include "Pstream.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
 bool Foam::IOobject::typeHeaderOk(const bool checkType)
 {
+    syncClockTime clock; 
     bool ok = true;
 
     // Everyone check or just master
@@ -69,6 +71,7 @@ bool Foam::IOobject::typeHeaderOk(const bool checkType)
         Pstream::scatter(ok);
     }
 
+    Info << "Foam::IOobject::typeHeaderOk time : " << clock.elapsedTime() << endl;
     return ok;
 }
 

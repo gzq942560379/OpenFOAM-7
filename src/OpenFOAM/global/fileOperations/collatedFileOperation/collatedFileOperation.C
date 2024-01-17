@@ -32,6 +32,7 @@ License
 #include "registerSwitch.H"
 #include "masterOFstream.H"
 #include "OFstream.H"
+#include "clockTime.H"
 
 /* * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * */
 
@@ -1281,11 +1282,22 @@ bool Foam::fileOperations::collatedFileOperation::readHeader
     }
 
     // Get filePaths on world master
-    fileNameList filePaths(Pstream::nProcs(Pstream::worldComm));
-    filePaths[Pstream::myProcNo(Pstream::worldComm)] = fName;
-    Pstream::gatherList(filePaths, Pstream::msgType(), Pstream::worldComm);
-    bool uniform = uniformFile(filePaths);
-    Pstream::scatter(uniform, Pstream::msgType(), Pstream::worldComm);
+    // fileNameList filePaths(Pstream::nProcs(Pstream::worldComm));
+    // filePaths[Pstream::myProcNo(Pstream::worldComm)] = fName;
+    // Pstream::gatherList(filePaths, Pstream::msgType(), Pstream::worldComm);
+    // bool uniform = uniformFile(filePaths);
+    // Pstream::scatter(uniform, Pstream::msgType(), Pstream::worldComm);
+
+    // fileName fNameMaster;
+    // if(Pstream::master(Pstream::worldComm)){
+    //     fNameMaster = fName;
+    // }
+    // Pstream::scatter(fNameMaster);
+    // bool uniform = (fNameMaster == fName);
+    // reduce(uniform, andOp<bool>());
+
+    bool uniform = true;
+
 
     if (uniform)
     {
@@ -1317,6 +1329,7 @@ bool Foam::fileOperations::collatedFileOperation::readHeader
     }
     else
     {
+        fileNameList filePaths;
         if (Pstream::nProcs(comm_) != Pstream::nProcs(Pstream::worldComm))
         {
             // Re-gather file paths on local master

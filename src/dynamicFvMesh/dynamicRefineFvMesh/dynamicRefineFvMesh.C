@@ -33,6 +33,7 @@ License
 #include "pointFields.H"
 #include "sigFpe.H"
 #include "cellSet.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -205,19 +206,26 @@ Foam::dynamicRefineFvMesh::refine
     const labelList& cellsToRefine
 )
 {
+    Info << "Foam::dynamicRefineFvMesh::refine start" << endl;
+    syncClockTime clock;
     // Mesh changing engine.
     polyTopoChange meshMod(*this);
+    Info << "Foam::dynamicRefineFvMesh::refine time 0 : " << clock.timeIncrement() << endl;
 
     // Play refinement commands into mesh changer.
     meshCutter_.setRefinement(cellsToRefine, meshMod);
+    Info << "Foam::dynamicRefineFvMesh::refine time 1 : " << clock.timeIncrement() << endl;
 
     // Create mesh (with inflation), return map from old to new mesh.
     // autoPtr<mapPolyMesh> map = meshMod.changeMesh(*this, true);
     autoPtr<mapPolyMesh> map = meshMod.changeMesh(*this, false);
+    Info << "Foam::dynamicRefineFvMesh::refine time 2 : " << clock.timeIncrement() << endl;
 
     Info<< "Refined from "
         << returnReduce(map().nOldCells(), sumOp<label>())
         << " to " << globalData().nTotalCells() << " cells." << endl;
+
+    Info << "Foam::dynamicRefineFvMesh::refine time 3 : " << clock.timeIncrement() << endl;
 
     if (debug)
     {
@@ -244,6 +252,7 @@ Foam::dynamicRefineFvMesh::refine
 
     // Update fields
     updateMesh(map);
+    Info << "Foam::dynamicRefineFvMesh::refine time 4 : " << clock.timeIncrement() << endl;
 
 
     // Move mesh
@@ -265,6 +274,8 @@ Foam::dynamicRefineFvMesh::refine
     {
         const labelList& faceMap = map().faceMap();
         const labelList& reverseFaceMap = map().reverseFaceMap();
+    Info << "Foam::dynamicRefineFvMesh::refine time 5 : " << clock.timeIncrement() << endl;
+
 
         // Storage for any master faces. These will be the original faces
         // on the coarse cell that get split into four (or rather the
@@ -296,6 +307,7 @@ Foam::dynamicRefineFvMesh::refine
         {
             Pout<< "Found " << masterFaces.size() << " split faces " << endl;
         }
+        Info << "Foam::dynamicRefineFvMesh::refine time 6 : " << clock.timeIncrement() << endl;
 
         HashTable<surfaceScalarField*> fluxes
         (
@@ -423,12 +435,14 @@ Foam::dynamicRefineFvMesh::refine
                 }
             }
         }
+        Info << "Foam::dynamicRefineFvMesh::refine time 7 : " << clock.timeIncrement() << endl;
     }
 
 
 
     // Update numbering of cells/vertices.
     meshCutter_.updateMesh(map);
+    Info << "Foam::dynamicRefineFvMesh::refine time 8 : " << clock.timeIncrement() << endl;
 
     // Update numbering of protectedCell_
     if (protectedCell_.size())
@@ -442,9 +456,11 @@ Foam::dynamicRefineFvMesh::refine
         }
         protectedCell_.transfer(newProtectedCell);
     }
+    Info << "Foam::dynamicRefineFvMesh::refine time 9 : " << clock.timeIncrement() << endl;
 
     // Debug: Check refinement levels (across faces only)
     meshCutter_.checkRefinementLevels(-1, labelList(0));
+    Info << "Foam::dynamicRefineFvMesh::refine time 10 : " << clock.timeIncrement() << endl;
 
     return map;
 }
@@ -993,9 +1009,10 @@ Foam::dynamicRefineFvMesh::dynamicRefineFvMesh(const IOobject& io)
     nRefinementIterations_(0),
     protectedCell_(nCells(), 0)
 {
+    syncClockTime clock;
     // Read static part of dictionary
     readDict();
-
+    Info << "Foam::dynamicRefineFvMesh::dynamicRefineFvMesh time 0 : " << clock.timeIncrement() << endl;
 
     const labelList& cellLevel = meshCutter_.cellLevel();
     const labelList& pointLevel = meshCutter_.pointLevel();
@@ -1035,6 +1052,7 @@ Foam::dynamicRefineFvMesh::dynamicRefineFvMesh(const IOobject& io)
             }
         }
     }
+    Info << "Foam::dynamicRefineFvMesh::dynamicRefineFvMesh time 1 : " << clock.timeIncrement() << endl;
 
 
     // Count number of points <= faceLevel
@@ -1137,6 +1155,7 @@ Foam::dynamicRefineFvMesh::dynamicRefineFvMesh(const IOobject& io)
         // Check cells for 8 corner points
         checkEightAnchorPoints(protectedCell_, nProtected);
     }
+    Info << "Foam::dynamicRefineFvMesh::dynamicRefineFvMesh time 2 : " << clock.timeIncrement() << endl;
 
     if (returnReduce(nProtected, sumOp<label>()) == 0)
     {
@@ -1162,6 +1181,7 @@ Foam::dynamicRefineFvMesh::dynamicRefineFvMesh(const IOobject& io)
 
         protectedCells.write();
     }
+    Info << "Foam::dynamicRefineFvMesh::dynamicRefineFvMesh time 3 : " << clock.timeIncrement() << endl;
 }
 
 
@@ -1175,6 +1195,8 @@ Foam::dynamicRefineFvMesh::~dynamicRefineFvMesh()
 
 bool Foam::dynamicRefineFvMesh::update()
 {
+    Info << "Foam::dynamicRefineFvMesh::update start" << endl;
+    syncClockTime clock;
     // Re-read dictionary. Chosen since usually -small so trivial amount
     // of time compared to actual refinement. Also very useful to be able
     // to modify on-the-fly.
@@ -1201,6 +1223,8 @@ bool Foam::dynamicRefineFvMesh::update()
             << " be >= 1." << nl
             << exit(FatalError);
     }
+
+    Info << "Foam::dynamicRefineFvMesh::update time 0 : " << clock.timeIncrement() << endl;
 
     // Note: cannot refine at time 0 since no V0 present since mesh not
     //       moved yet.
@@ -1245,8 +1269,11 @@ bool Foam::dynamicRefineFvMesh::update()
         const label nBufferLayers =
             readLabel(refineDict.lookup("nBufferLayers"));
 
+        Info << "Foam::dynamicRefineFvMesh::update time 1 : " << clock.timeIncrement() << endl;
+
         // Cells marked for refinement or otherwise protected from unrefinement.
         PackedBoolList refineCell(nCells());
+        Info << "Foam::dynamicRefineFvMesh::update time 2 : " << clock.timeIncrement() << endl;
 
         // Determine candidates for refinement (looking at field only)
         selectRefineCandidates
@@ -1256,6 +1283,7 @@ bool Foam::dynamicRefineFvMesh::update()
             vFld,
             refineCell
         );
+        Info << "Foam::dynamicRefineFvMesh::update time 3 : " << clock.timeIncrement() << endl;
 
         if (globalData().nTotalCells() < maxCells)
         {
@@ -1270,16 +1298,19 @@ bool Foam::dynamicRefineFvMesh::update()
                     refineCell
                 )
             );
+            Info << "Foam::dynamicRefineFvMesh::update time 4 : " << clock.timeIncrement() << endl;
 
             label nCellsToRefine = returnReduce
             (
                 cellsToRefine.size(), sumOp<label>()
             );
+            Info << "Foam::dynamicRefineFvMesh::update time 5 : " << clock.timeIncrement() << endl;
 
             if (nCellsToRefine > 0)
             {
                 // Refine/update mesh and map fields
                 autoPtr<mapPolyMesh> map = refine(cellsToRefine);
+                Info << "Foam::dynamicRefineFvMesh::update time 7 : " << clock.timeIncrement() << endl;
 
                 // Update refineCell. Note that some of the marked ones have
                 // not been refined due to constraints.
@@ -1309,15 +1340,19 @@ bool Foam::dynamicRefineFvMesh::update()
                     refineCell.transfer(newRefineCell);
                 }
 
+                Info << "Foam::dynamicRefineFvMesh::update time 8 : " << clock.timeIncrement() << endl;
+
                 // Extend with a buffer layer to prevent neighbouring points
                 // being unrefined.
                 for (label i = 0; i < nBufferLayers; i++)
                 {
                     extendMarkedCells(refineCell);
                 }
+                Info << "Foam::dynamicRefineFvMesh::update time 9 : " << clock.timeIncrement() << endl;
 
                 hasChanged = true;
             }
+       
         }
 
 
@@ -1332,12 +1367,15 @@ bool Foam::dynamicRefineFvMesh::update()
                     maxCellField(vFld)
                 )
             );
+            
+            Info << "Foam::dynamicRefineFvMesh::update time 10 : " << clock.timeIncrement() << endl;
 
             label nSplitPoints = returnReduce
             (
                 pointsToUnrefine.size(),
                 sumOp<label>()
             );
+            Info << "Foam::dynamicRefineFvMesh::update time 11 : " << clock.timeIncrement() << endl;
 
             if (nSplitPoints > 0)
             {
@@ -1346,6 +1384,8 @@ bool Foam::dynamicRefineFvMesh::update()
 
                 hasChanged = true;
             }
+            Info << "Foam::dynamicRefineFvMesh::update time 12 : " << clock.timeIncrement() << endl;
+
         }
 
 
@@ -1356,16 +1396,19 @@ bool Foam::dynamicRefineFvMesh::update()
             const_cast<refinementHistory&>(meshCutter().history()).compact();
         }
         nRefinementIterations_++;
+
+        Info << "Foam::dynamicRefineFvMesh::update time 13 : " << clock.timeIncrement() << endl;
     }
 
     topoChanging(hasChanged);
+    Info << "Foam::dynamicRefineFvMesh::update time 14 : " << clock.timeIncrement() << endl;
     if (hasChanged)
     {
         // Reset moving flag (if any). If not using inflation we'll not move,
         // if are using inflation any follow on movePoints will set it.
         moving(false);
     }
-
+    Info << "Foam::dynamicRefineFvMesh::update time 15 : " << clock.timeIncrement() << endl;
     return hasChanged;
 }
 

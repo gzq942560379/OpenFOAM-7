@@ -364,13 +364,13 @@ Foam::GeometricField<Type, PatchField, GeoMesh>::GeometricField
             << exit(FatalIOError);
     }
 
-    readOldTimeIfPresent();
+    // readOldTimeIfPresent();
 
-    if (debug)
-    {
-        InfoInFunction
-            << "Finishing read-construction of" << endl << this->info() << endl;
-    }
+    // if (debug)
+    // {
+    //     InfoInFunction
+    //         << "Finishing read-construction of" << endl << this->info() << endl;
+    // }
 }
 
 

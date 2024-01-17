@@ -41,6 +41,11 @@ SourceFiles
 
 #include "UPstream.H"
 #include "DynamicList.H"
+#include "word.H"
+#include "string.H"
+#include "fileName.H"
+#include "labelList.H"
+#include "ops.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -122,6 +127,50 @@ public:
                 const label comm
             );
 
+            static void barrier
+            (
+                const label comm = Pstream::worldComm
+            );
+
+            static void scatter
+            (
+                label& Value,
+                const int tag = Pstream::msgType(),
+                const label comm = Pstream::worldComm
+            );
+
+            static void scatter
+            (
+                bool& Value,
+                const int tag = Pstream::msgType(),
+                const label comm = Pstream::worldComm
+            );
+
+            static void scatter
+            (
+                scalar& Value,
+                const int tag = Pstream::msgType(),
+                const label comm = Pstream::worldComm
+            );
+
+            static void scatter
+            (
+                string& Value,
+                const int tag = Pstream::msgType(),
+                const label comm = Pstream::worldComm
+            );
+            static void scatter
+            (
+                word& Value,
+                const int tag = Pstream::msgType(),
+                const label comm = Pstream::worldComm
+            );
+            static void scatter
+            (
+                fileName& Value,
+                const int tag = Pstream::msgType(),
+                const label comm = Pstream::worldComm
+            );
             //- Like above but switches between linear/tree communication
             template<class T>
             static void scatter
@@ -185,6 +234,22 @@ public:
                 const label comm
             );
 
+            static void listCombineGather
+            (
+                List<scalar>& Value,
+                const maxEqOp<scalar>& cop,
+                const int tag,
+                const label comm
+            );
+
+            static void listCombineGather
+            (
+                List<scalar>& Value,
+                const minEqOp<scalar>& cop,
+                const int tag,
+                const label comm
+            );
+
             //- Like above but switches between linear/tree communication
             template<class T, class CombineOp>
             static void listCombineGather
@@ -193,6 +258,13 @@ public:
                 const CombineOp& cop,
                 const int tag = Pstream::msgType(),
                 const label comm = Pstream::worldComm
+            );
+
+            static void listCombineScatter
+            (
+                List<scalar>& Value,
+                const int tag,
+                const label comm
             );
 
             //- Scatter data. Reverse of combineGather
@@ -280,6 +352,20 @@ public:
                 const label comm
             );
 
+            static void gatherList
+            (
+                List<label>& Values,
+                const int tag = Pstream::msgType(),
+                const label comm = UPstream::worldComm
+            );
+
+            static void gatherList
+            (
+                List<labelList>& Values,
+                const int tag = Pstream::msgType(),
+                const label comm = UPstream::worldComm
+            );
+
             template<class T>
             static void gatherListTree
             (
@@ -323,6 +409,20 @@ public:
                 const label comm
             );
 
+            static void scatterList
+            (
+                List<label>& Values,
+                const int tag = Pstream::msgType(),
+                const label comm = UPstream::worldComm
+            );
+
+            static void scatterList
+            (
+                List<labelList>& Values,
+                const int tag = Pstream::msgType(),
+                const label comm = UPstream::worldComm
+            );
+
             //- Like above but switches between linear/tree communication
             template<class T>
             static void scatterList
@@ -331,7 +431,7 @@ public:
                 const int tag = Pstream::msgType(),
                 const label comm = UPstream::worldComm
             );
-
+    
 
         // Exchange
 
@@ -357,6 +457,24 @@ public:
                 const Container& sendData,
                 labelList& sizes,
                 const label comm = UPstream::worldComm
+            );
+
+            static void exchange
+            (
+                const UList<DynamicList<char>>& sendData,
+                List<DynamicList<char>>& recvData,
+                const int tag = UPstream::msgType(),
+                const label comm = UPstream::worldComm,
+                const bool block = true
+            );
+
+            static void exchange
+            (
+                const UList<labelList>& sendData,
+                List<labelList>& recvData,
+                const int tag = UPstream::msgType(),
+                const label comm = UPstream::worldComm,
+                const bool block = true
             );
 
             //- Exchange contiguous data. Sends sendData, receives into

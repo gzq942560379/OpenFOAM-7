@@ -34,6 +34,10 @@ Description
 #include "UIPstream.H"
 #include "IPstream.H"
 #include "contiguous.H"
+#include "IStringStream.H"
+#include "OStringStream.H"
+#include "clockTime.H"
+#include <typeinfo>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -131,13 +135,19 @@ void Pstream::gather
     const label comm
 )
 {
-    if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
-    {
-        gather(UPstream::linearCommunication(comm), Value, bop, tag, comm);
-    }
-    else
-    {
-        gather(UPstream::treeCommunication(comm), Value, bop, tag, comm);
+    if (UPstream::parRun() && UPstream::nProcs(comm) > 1){
+        syncClockTime clock;
+        if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
+        {
+            gather(UPstream::linearCommunication(comm), Value, bop, tag, comm);
+        }
+        else
+        {
+            gather(UPstream::treeCommunication(comm), Value, bop, tag, comm);
+        }
+        Info << "Pstream::gather T : " << typeid(T).name() << endl;
+        Info << "Pstream::gather BinaryOp : " << typeid(BinaryOp).name() << endl;
+        Info << "Pstream::gather time : " << clock.elapsedTime() << endl;
     }
 }
 
@@ -222,13 +232,18 @@ void Pstream::scatter
 template<class T>
 void Pstream::scatter(T& Value, const int tag, const label comm)
 {
-    if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
-    {
-        scatter(UPstream::linearCommunication(comm), Value, tag, comm);
-    }
-    else
-    {
-        scatter(UPstream::treeCommunication(comm), Value, tag, comm);
+    if (UPstream::parRun() && UPstream::nProcs(comm) > 1){
+        syncClockTime clock;
+        if (UPstream::nProcs(comm) < UPstream::nProcsSimpleSum)
+        {
+            scatter(UPstream::linearCommunication(comm), Value, tag, comm);
+        }
+        else
+        {
+            scatter(UPstream::treeCommunication(comm), Value, tag, comm);
+        }
+        Info << "Pstream::scatter T : " << typeid(T).name() << endl;
+        Info << "Pstream::scatter time : " << clock.elapsedTime() << endl;
     }
 }
 

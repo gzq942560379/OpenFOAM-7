@@ -29,6 +29,7 @@ License
 #include "globalIndexAndTransform.H"
 #include "transformField.H"
 #include "flipOp.H"
+#include "clockTime.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -220,10 +221,14 @@ void Foam::mapDistribute::distribute
     const int tag
 ) const
 {
+    syncClockTime clock;
     // Distribute. Leave out dummy transforms since we're doing them ourselves
     distribute(fld, false, tag);
+    Info << "Foam::mapDistribute::distribute time 0 : " << clock.timeIncrement() << endl;
     // Do transforms
     applyTransforms(git, fld, top);
+    Info << "Foam::mapDistribute::distribute time 1 : " << clock.timeIncrement() << endl;
+    Info << "Foam::mapDistribute::distribute time : " << clock.elapsedTime() << endl;
 }
 
 

@@ -34,6 +34,8 @@ namespace Foam
 
 MPI_Comm PstreamGlobals::MPI_COMM_FOAM;
 
+MPI_Comm PstreamGlobals::MPI_COMM_TWO_LEVEL;
+
 // Outstanding non-blocking operations.
 //! \cond fileScope
 DynamicList<MPI_Request> PstreamGlobals::outstandingRequests_;
