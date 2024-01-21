@@ -26,6 +26,7 @@ License
 #include "clockTime.H"
 #include <sys/time.h>
 #include "Pstream.H"
+#include <mpi.h>
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -80,7 +81,8 @@ double Foam::clockTime::timeIncrement() const
 void Foam::syncClockTime::getTime(timeType& t)
 {
     if(UPstream::parRun()){
-        Pstream::barrier();
+        // Pstream::barrier();
+        MPI_Barrier(MPI_COMM_WORLD);
     }
     gettimeofday(&t, 0);
 }
@@ -88,7 +90,7 @@ void Foam::syncClockTime::getTime(timeType& t)
 
 double Foam::syncClockTime::timeDifference(const timeType& beg, const timeType& end)
 {
-    return end.tv_sec - beg.tv_sec + 1e-6*(end.tv_usec - beg.tv_usec);
+    return end.tv_sec - beg.tv_sec + 1e-6 * (end.tv_usec - beg.tv_usec);
 }
 
 
