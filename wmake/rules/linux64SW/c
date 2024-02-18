@@ -8,7 +8,7 @@ cWARN       = -Wall $(FOAM_EXTRA_CFLAGS)
 
 cc          = mpicc
 
-cARCH       = -mftz -mieee -DvectorMachine
+cARCH       = -mftz -mieee -DvectorMachine -faddress_align=64 -fcheck-ldm-stack
 
 # Compile option is non-mandatory, but must be non-empty
 sinclude $(DEFAULT_RULES)/c$(WM_COMPILE_OPTION)

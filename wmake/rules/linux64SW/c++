@@ -24,7 +24,7 @@ c++LESSWARN = \
 
 CC          = mpicxx
 
-c++ARCH     = -std=c++11 -mftz -mieee -DvectorMachine 
+c++ARCH     = -mftz -mieee -DvectorMachine -faddress_align=64 
 
 include $(DEFAULT_RULES)/c++$(WM_COMPILE_OPTION)
 

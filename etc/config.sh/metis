@@ -35,6 +35,6 @@
 #------------------------------------------------------------------------------
 
 export METIS_VERSION=metis-5.1.0
-export METIS_ARCH_PATH=/home/export/online1/mdt00/shisuan/jiaweile/guozhuoqiang/DeepFlame/software/metis-5.1.0
+export METIS_ARCH_PATH=${METIS_HOME}
 
 #------------------------------------------------------------------------------

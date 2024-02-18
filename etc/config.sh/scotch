@@ -38,6 +38,6 @@
 #------------------------------------------------------------------------------
 
 export SCOTCH_VERSION=7.0.4
-export SCOTCH_ARCH_PATH=/home/export/online1/mdt00/shisuan/jiaweile/guozhuoqiang/DeepFlame/software/scotch-7.0.4
+export SCOTCH_ARCH_PATH=${SCOTCH_HOME}
 
 #------------------------------------------------------------------------------
