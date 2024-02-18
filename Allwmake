@@ -30,12 +30,18 @@ else
 fi
 
 # Compile OpenFOAM libraries and applications
-# src/Allwmake $targetType $*
-wmake src/OpenFOAM
-wmake src/dynamicMesh
-wmake src/genericPatchFields
-wmake src/parallel/decompose/decompositionMethods
-src/lagrangian/Allwmake
+src/Allwmake $targetType $*
+# src/Pstream/Allwmake
+# src/OSspecific/POSIX/Allwmake
+# wmake src/OpenFOAM
+# wmake src/triSurface
+# wmake src/meshTools
+# wmake src/finiteVolume
+# wmake src/extrudeModel
+# wmake src/dynamicMesh
+# wmake src/genericPatchFields
+# wmake src/parallel/decompose/decompositionMethods
+# src/lagrangian/Allwmake
 
 # Compile OpenFOAM libraries and applications
 # applications/Allwmake $targetType $*
