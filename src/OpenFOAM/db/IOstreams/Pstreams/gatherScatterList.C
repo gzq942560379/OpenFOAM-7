@@ -286,9 +286,9 @@ void Pstream::gatherListTree
             if(peer >= UPstream::nProcs()){
                 continue;
             }
-            int count = mask;
             if(UPstream::myProcNo() & mask){ // sender
-                // std::cout << UPstream::myProcNo() <<  " send (" << UPstream::myProcNo() << ", " << UPstream::myProcNo() + count << ") to " << peer << std::endl;
+                int count = std::min(mask, static_cast<int>(UPstream::nProcs() - UPstream::myProcNo()));
+                // Pout << UPstream::myProcNo() <<  " send (" << UPstream::myProcNo() << ", " << UPstream::myProcNo() + count << ") to " << peer << endl;
                 if (contiguous<T>()){
                     List<T> sendingValues(count);
                     for(int i = 0; i < count; ++i){
@@ -317,7 +317,8 @@ void Pstream::gatherListTree
                     }
                 }
             }else{ // reciver
-                // std::cout << UPstream::myProcNo() <<  " recv (" << peer << ", " << peer + count << ") from " << peer << std::endl;
+                int count = std::min(mask, static_cast<int>(UPstream::nProcs() - peer));
+                // Pout << UPstream::myProcNo() <<  " recv (" << peer << ", " << peer + count << ") from " << peer << endl;
                 if (contiguous<T>()){
                     List<T> receivedValues(count);
                     UIPstream::read
@@ -594,10 +595,11 @@ void Pstream::scatterListTree
             if(peer >= UPstream::nProcs()){
                 continue;
             }
-            int ignore_count = mask;
-            int count = UPstream::nProcs() - ignore_count;
+
             if(UPstream::myProcNo() & mask){ // reciver
-                // std::cout << UPstream::myProcNo() <<  " recv (" << 0 << ", " <<  UPstream::myProcNo() << "), (" << UPstream::myProcNo() + ignore_count << ", " << UPstream::nProcs() << ") from " << peer << std::endl;
+                int ignore_count = std::min(mask, static_cast<int>(UPstream::nProcs() - UPstream::myProcNo()));
+                int count = UPstream::nProcs() - ignore_count;
+                // Pout << UPstream::myProcNo() <<  " recv (" << 0 << ", " <<  UPstream::myProcNo() << "), (" << UPstream::myProcNo() + ignore_count << ", " << UPstream::nProcs() << ") from " << peer << endl;
                 if (contiguous<T>())
                 {
                     List<T> receivedValues(count);
@@ -635,7 +637,9 @@ void Pstream::scatterListTree
                     }
                 }
             }else{ //sender
-                // std::cout << UPstream::myProcNo() <<  " send (" << 0 << ", " <<  peer << "), (" << peer + ignore_count << ", " << UPstream::nProcs() << ") to " << peer << std::endl;
+                int ignore_count = std::min(mask, static_cast<int>(UPstream::nProcs() - peer));
+                int count = UPstream::nProcs() - ignore_count;
+                // Pout << UPstream::myProcNo() <<  " send (" << 0 << ", " <<  peer << "), (" << peer + ignore_count << ", " << UPstream::nProcs() << ") to " << peer << endl;
                 if (contiguous<T>())
                 {
                     List<T> sendingValues(count);
@@ -691,6 +695,7 @@ void Pstream::scatterList(List<T>& Values, const int tag, const label comm)
     //     scatterList(UPstream::treeCommunication(comm), Values, tag, comm);
     // }
     scatterListTree(Values, tag, comm);
+    // scatterListLinear(Values, tag, comm);
     // Info << "scatterList time : " << scatterList_end - scatterList_start << endl;
     // Info << "Pstream::scatterList end" << endl;
     Info << "Pstream::scatterList T : " << typeid(T).name() << endl;
