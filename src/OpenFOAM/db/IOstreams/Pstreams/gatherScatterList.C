@@ -256,7 +256,7 @@ void Pstream::gatherListTree
 {
     if(comm != 0){
         FatalErrorInFunction
-            << "gatherListLinear only support comm == 0, but comm = " << comm << endl << flush
+            << "gatherListTree only support comm == 0, but comm = " << comm << endl << flush
             << Foam::abort(FatalError);   
     }
 
